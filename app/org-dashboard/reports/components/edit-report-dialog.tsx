@@ -12,6 +12,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useRef } from "react";
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -124,6 +125,10 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
   const [benefits, setBenefits] = useState<Benefit[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const participantsInitializedRef = useRef(false);
+  const initialParticipantCountRef = useRef(0);
+
+
 
   // Organization and PeopleBank state
   const [organization, setOrganization] = useState<any>(null)
@@ -173,6 +178,9 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
     },
   })
 
+  // Watch the numberOfPeople field for changes
+  const numberOfPeople = form.watch("numberOfPeople");
+
   // Fetch organization data
   const { data: orgData } = useQuery({
     queryKey: ["organization"],
@@ -214,7 +222,7 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
   }, [peopleBankData])
 
   // Fetch report details
-  const { data: report, isLoading: isLoadingReport } = useQuery({
+  const { data: report, refetch, isLoading: isLoadingReport } = useQuery({
     queryKey: ["report-edit", reportId],
     queryFn: async () => {
       const response = await fetch(`/api/reports/${reportId}`)
@@ -225,6 +233,13 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
     },
     enabled: open,
   })
+
+  useEffect(() => {
+    if (open) {
+      refetch(); // force reload when dialog opens
+    }
+  }, [open, refetch]);
+
 
   // Populate form with report data when loaded
   useEffect(() => {
@@ -250,7 +265,6 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
         trainingDateTo: report.trainingReport?.dateTo ? new Date(report.trainingReport.dateTo) : undefined,
         // Infrastructure fields
         infrastructureName: report.infrastructureReport?.infrastructureName || undefined,
-
         category: report.infrastructureReport?.category || undefined,
         workType: report.infrastructureReport?.workType || undefined,
         dprApproved: report.infrastructureReport?.dprApproved || false,
@@ -295,6 +309,11 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
 
         setParticipants(loadedParticipants);
 
+        participantsInitializedRef.current = true;
+        initialParticipantCountRef.current = loadedParticipants.length;
+        form.setValue("numberOfPeople", loadedParticipants.length);
+
+
         // If any participants are from PeopleBank, enable the PeopleBank selection by default
         if (loadedParticipants.some((p: any) => p.peopleBankId)) {
           setUsePeopleBank(true);
@@ -312,6 +331,51 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
       }
     }
   }, [report, form])
+
+  useEffect(() => {
+    if (report?.type !== "Training") return;
+
+    const count = numberOfPeople || 0;
+
+    setParticipants(prev => {
+      // First time: allow API load only
+      if (!participantsInitializedRef.current) {
+        return prev;
+      }
+
+      if (prev.length === count) return prev;
+
+      // ➕ Add blanks
+      if (count > prev.length) {
+        const toAdd = count - prev.length;
+
+        const added = Array.from({ length: toAdd }).map((_, i) => ({
+          id: `${Date.now()}-${prev.length + i}`,
+          name: '',
+          age: 0,
+          gender: '',
+          education: '',
+          socialGroup: '',
+          designation: '',
+          organization: '',
+          mobile: '',
+          email: '',
+          isPwd: false,
+        }));
+
+        return [...prev, ...added];
+      }
+
+      if (count < prev.length) {
+
+        return prev.slice(0, count);
+      }
+
+      return prev;
+    });
+
+  }, [numberOfPeople, report?.type]);
+
 
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true)
@@ -428,13 +492,16 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
   }, [form])
 
   // Reset state when dialog closes
-  useEffect(() => {
-    if (!open) {
-      setOrganization(null)
-      setPeopleBank([])
-      setUsePeopleBank(false)
-    }
-  }, [open])
+useEffect(() => {
+  if (!open) {
+    setOrganization(null);
+    setPeopleBank([]);
+    setUsePeopleBank(false);
+    participantsInitializedRef.current = false;
+    initialParticipantCountRef.current = 0;
+  }
+}, [open]);
+
 
 
   const handleFileUpload = async (files: File[], folder: string): Promise<UploadedFile[]> => {
@@ -505,20 +572,36 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
                   <CardHeader>
                     <CardTitle className="text-lg">Date of Activity</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="reportingDate"
+                      name="unitReported"
                       render={({ field }) => (
                         <FormItem>
-                          <FormControl>
-                            <Input
-                              type="date"
-                              {...field}
-                              value={field.value ? (field.value instanceof Date ? field.value.toISOString().split('T')[0] : field.value) : ''}
-                              onChange={(e) => field.onChange(e.target.valueAsDate)}
-                            />
-                          </FormControl>
+                          <FormLabel>Units Reported</FormLabel>
+                          <div className="flex items-center space-x-2">
+                            <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">
+                              {report?.activity?.unitOfMeasure || "units"}
+                            </span>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="numberOfPeople"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Number of People (Optional)</FormLabel>
+                          <Input
+                            type="number"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            placeholder="Enter number of people"
+                          />
                           <FormMessage />
                         </FormItem>
                       )}
@@ -814,9 +897,10 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
                       </div>
 
                       <div className="space-y-4">
-                        {/* PeopleBank selection for organizations with access */}
+                        {/* ... PeopleBank Selection ... */}
                         {organization?.hasAccesstoPeopleBank && (
                           <div className="space-y-4">
+                            {/* ... Checkbox and Logic ... */}
                             <div className="flex items-center space-x-2 pt-2">
                               <Checkbox
                                 id="usePeopleBank"
@@ -828,8 +912,7 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
                                 <span>Select participants from Youth Bank</span>
                               </Label>
                             </div>
-
-                            {/* Always show PeopleBank list when organization has access */}
+                            {/* ... PeopleBank List ... */}
                             <div className="space-y-4">
                               <div className="flex items-center justify-between">
                                 <h4 className="text-sm font-medium">Select Participants from Youth Bank</h4>
@@ -852,9 +935,7 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
                                           id={`person-${person.id}`}
                                           checked={isSelected}
                                           onCheckedChange={(checked) => {
-                                            // Allow selection even when toggle is off, but show a message
                                             if (checked) {
-                                              // Add person to participants
                                               const newParticipant: TrainingParticipant = {
                                                 id: `${Date.now()}-${person.id}`,
                                                 name: person.name,
@@ -871,18 +952,18 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
                                               };
                                               const updatedParticipants = [...participants, newParticipant];
                                               setParticipants(updatedParticipants);
+                                              // Sync count
+                                              form.setValue("numberOfPeople", updatedParticipants.length);
 
-                                              // If toggle is off, show a message to enable it for better experience
                                               if (!usePeopleBank) {
-                                                toast.info('Youth Bank selection enabled', {
-                                                  description: 'Enable the "Select participants from Youth Bank" toggle for the best experience.'
-                                                });
+                                                toast.info('Youth Bank selection enabled');
                                                 setUsePeopleBank(true);
                                               }
                                             } else {
-                                              // Remove person from participants
                                               const updatedParticipants = participants.filter(p => p.peopleBankId !== person.id);
                                               setParticipants(updatedParticipants);
+                                              // Sync count
+                                              form.setValue("numberOfPeople", updatedParticipants.length);
                                             }
                                           }}
                                         />
@@ -904,22 +985,16 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
 
                         <div className="flex items-center justify-between">
                           <h4 className="text-sm font-medium">Participants</h4>
+                          <div className="text-sm text-muted-foreground">
+                            {participants.length > 0 ? `${participants.length} participants added` : 'Adjust "Number of People" above to add participants'}
+                          </div>
                           <Button
                             type="button"
                             variant="outline"
-                            onClick={() => setParticipants([...participants, {
-                              id: Date.now().toString(),
-                              name: '',
-                              age: 0,
-                              gender: '',
-                              education: '',
-                              socialGroup: '',
-                              designation: '',
-                              organization: '',
-                              mobile: '',
-                              email: '',
-                              isPwd: false
-                            }])}
+                            onClick={() => {
+                              const currentCount = form.getValues("numberOfPeople") || 0;
+                              form.setValue("numberOfPeople", currentCount + 1);
+                            }}
                           >
                             Add Participant
                           </Button>
@@ -937,9 +1012,11 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
                                   type="button"
                                   variant="destructive"
                                   size="sm"
+                                  className="text-white"
                                   onClick={() => {
                                     const newParticipants = participants.filter((_, i) => i !== index);
                                     setParticipants(newParticipants);
+                                    form.setValue("numberOfPeople", newParticipants.length);
                                   }}
                                 >
                                   Remove

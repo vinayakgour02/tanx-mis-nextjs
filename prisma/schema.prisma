@@ -1,0 +1,1474 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+// ============================================
+// ORGANIZATION PROFILE
+// ============================================
+
+enum OrganizationType {
+  APP
+  NGO
+  DONOR
+  CSR
+  TRUST
+  FOUNDATION
+  COMPANY
+}
+
+model Organization {
+  id      String           @id @default(cuid())
+  name    String           @db.VarChar(255)
+  type    OrganizationType
+  slug    String           @unique @db.VarChar(100)
+  tagline String?          @db.VarChar(255)
+  logo    String?          @db.VarChar(500)
+
+  // Contact Information
+  email    String? @db.VarChar(255)
+  phone    String? @db.VarChar(50)
+  website  String? @db.VarChar(255)
+  linkedin String? @db.VarChar(255)
+
+  // Address
+  address  String? @db.Text
+  pinCode  String? @db.VarChar(20)
+  district String? @db.VarChar(100)
+  state    String? @db.VarChar(100)
+  country  String? @db.VarChar(100)
+
+  // Organization Head
+  headName        String? @db.VarChar(255)
+  headDesignation String? @db.VarChar(100)
+  headPhone       String? @db.VarChar(50)
+  headEmail       String? @db.VarChar(255)
+
+  // Organization Details
+  description     String?   @db.Text
+  history         String?   @db.Text
+  foundingPurpose String?   @db.Text
+  establishedDate DateTime?
+
+  // Vision & Mission
+  visionStatement String? @db.Text
+  mission         String? @db.Text
+  coreValues      String? @db.Text
+
+  // Legal Registration
+  legalStructure     String?   @db.VarChar(255) // non-profit, Section 8, trust, etc.
+  registrationNumber String?   @db.VarChar(100)
+  registrationDate   DateTime?
+  registrationDoc    String?   @db.VarChar(500) // URL to document
+
+  // Tax & Compliance
+  panNumber         String? @db.VarChar(50)
+  panDoc            String? @db.VarChar(500)
+  tinNumber         String? @db.VarChar(50)
+  tinDoc            String? @db.VarChar(500)
+  certificate12A    String? @db.VarChar(100)
+  certificate12ADoc String? @db.VarChar(500)
+  certificate80G    String? @db.VarChar(100)
+  certificate80GDoc String? @db.VarChar(500)
+  csrNumber         String? @db.VarChar(100)
+  csrDoc            String? @db.VarChar(500)
+  fcraNumber        String? @db.VarChar(100)
+  fcraDoc           String? @db.VarChar(500)
+
+  hasAuditedFinancials  Boolean  @default(false)
+  isActive              Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  hasAccesstoPeopleBank Boolean  @default(false)
+  hasAccessToAssetManagement Boolean  @default(false)
+
+  // Relations
+  peopleBank            PeopleBank[]
+  donors                Donor[]
+  projects              Project[]               @relation("OrganizationProjects")
+  members               Membership[]
+  settings              OrganizationSettings?
+  roles                 OrganizationRole[]
+  programs              Program[]
+  reports               Report[]
+  dashboards            Dashboard[]
+  auditLogs             AuditLog[]
+  objectives            Objective[]
+  Indicator             Indicator[]
+  assets Asset[]
+  activities            Activity[]
+  OrganizationIndicator OrganizationIndicator[]
+  interventionstate     state[]
+  interventiondistrict  district[]
+  block                 block[]
+  gramPanchayat         gramPanchayat[]
+  village               village[]
+
+  subscriptions OrganizationSubscription[]
+  requests      SubscriptionRequest[]
+  User          User[]
+  Intervention  Intervention[]
+  Plan          Plan[]
+
+  @@map("organizations")
+}
+
+// SUBSCRIPTIONS
+
+enum SubscriptionType {
+  DEMO
+  BASIC_MONTHLY
+  BASIC_ANNUAL
+  PREMIUM_MONTHLY
+  PREMIUM_ANNUAL
+  ADVANCE_MONTHLY
+  ADVANCE_ANNUAL
+}
+
+enum PaymentStatus {
+  PENDING
+  CONFIRMED
+  EXPIRED
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ---------------- Subscription Plans ----------------
+
+model SubscriptionPlan {
+  id              Int              @id @default(autoincrement())
+  name            String
+  type            SubscriptionType @unique
+  description     String?
+  price           Int? // in INR or smallest currency unit
+  durationInDays  Int // 30 for monthly, 365 for annual, 7 for demo
+  projectsAllowed Int?
+  PagesAllowed    Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subscriptions OrganizationSubscription[]
+  requests      SubscriptionRequest[]
+}
+
+// ---------------- Requests ----------------
+
+model SubscriptionRequest {
+  id             Int           @id @default(autoincrement())
+  organizationId String
+  planId         Int
+  status         RequestStatus @default(PENDING)
+  requestedAt    DateTime      @default(now())
+
+  // Manual payment details
+  paymentMode     String? // cash, bank transfer, UPI, etc.
+  referenceNumber String?
+  notes           String?
+
+  // Relations
+  organization Organization     @relation(fields: [organizationId], references: [id])
+  plan         SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  @@index([organizationId])
+  @@index([planId])
+}
+
+// ---------------- Active/History ----------------
+
+model OrganizationSubscription {
+  id             Int      @id @default(autoincrement())
+  organizationId String
+  planId         Int
+  startDate      DateTime @default(now())
+  endDate        DateTime
+  isActive       Boolean  @default(true)
+
+  paymentStatus   PaymentStatus @default(PENDING)
+  paymentMode     String?
+  referenceNumber String?
+  notes           String?
+
+  // Relations
+  plan         SubscriptionPlan @relation(fields: [planId], references: [id])
+  organization Organization     @relation(fields: [organizationId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([planId])
+  @@index([organizationId])
+}
+
+model Donor {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String   @db.VarChar(255)
+  type           String   @db.VarChar(100) // CSR, Government, Trust, etc.
+  code           String?  @db.VarChar(50)
+  description    String?  @db.Text
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  projectFunding ProjectFunding[]
+  assets Asset[]
+
+  @@index([organizationId])
+  @@map("donors")
+}
+
+// ============================================
+// PROJECT MANAGEMENT
+// ============================================
+
+enum ProjectStatus {
+  DRAFT
+  PLANNED
+  ACTIVE
+}
+
+model Project {
+  id             String        @id @default(cuid())
+  organizationId String
+  code           String?       @db.VarChar(50)
+  name           String        @db.VarChar(255)
+  description    String?       @db.Text
+  theme          String?       @db.VarChar(100)
+  status         ProjectStatus @default(DRAFT)
+  baseline       Decimal?      @db.Decimal(15, 2)
+  target         Decimal?      @db.Decimal(15, 2)
+
+  // Duration
+  startDate DateTime
+  endDate   DateTime
+
+  // Beneficiaries
+  directBeneficiaries   Int?
+  indirectBeneficiaries Int?
+
+  // Budget
+  totalBudget Decimal? @db.Decimal(15, 2)
+  currency    String   @default("INR") @db.VarChar(3)
+
+  // Project Goal & Objectives
+  goal String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  organization      Organization        @relation("OrganizationProjects", fields: [organizationId], references: [id], onDelete: Cascade)
+  programs          Program[]           @relation("ProjectPrograms")
+  objectives        Objective[]
+  funding           ProjectFunding[]
+  activities        Activity[]
+  indicators        Indicator[]
+  team              ProjectTeamMember[]
+  assets Asset[]
+  tasks             Task[]
+  attachments       Attachment[]
+  reports           Report[]
+  interventionAreas InterventionArea[]
+
+  // Add programId field
+  Plan Plan[]
+
+  @@index([organizationId])
+  @@map("projects")
+}
+
+model Objective {
+  id             String   @id @default(cuid())
+  projectId      String?
+  organizationId String?
+  programId      String?
+  code           String?  @db.VarChar(50)
+  level          String   @db.VarChar(50) // Goal, Outcome, Output, Activity
+  description    String   @db.Text
+  orderIndex     Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  project               Project?                @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  organization          Organization?           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  program               Program?                @relation("ProgramObjectives", fields: [programId], references: [id], onDelete: Cascade)
+  indicators            Indicator[]
+  activities            Activity[]
+  Intervention          Intervention[]
+  OrganizationIndicator OrganizationIndicator[]
+
+  @@index([projectId])
+  @@index([organizationId])
+  @@index([programId])
+  @@map("objectives")
+}
+
+model ProjectFunding {
+  id        String   @id @default(cuid())
+  projectId String
+  donorId   String
+  amount    Decimal  @db.Decimal(15, 2)
+  currency  String   @default("INR") @db.VarChar(3)
+  year      Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  donor   Donor   @relation(fields: [donorId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([donorId])
+  @@map("project_funding")
+}
+
+model ProjectTeamMember {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  role      String   @db.VarChar(50)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([userId])
+  @@map("project_team_members")
+}
+
+// ============================================
+// MONITORING & EVALUATION
+// ============================================
+
+enum IndicatorType {
+  OUTPUT
+  OUTCOME
+  IMPACT
+}
+
+enum IndicatorLevel {
+  ORGANIZATION
+  PROGRAM
+  PROJECT
+}
+
+model Indicator {
+  id                String  @id @default(cuid())
+  organizationId    String
+  projectId         String?
+  programId         String?
+  objectiveId       String?
+  orgIndicatorId    String? // FK to OrganizationIndicator
+  parentIndicatorId String? // NEW field for hierarchy
+
+  name       String         @db.VarChar(255)
+  type       IndicatorType
+  level      IndicatorLevel
+  definition String         @db.Text
+  rationale  String?        @db.Text
+
+  // Data Collection
+  dataSource    String @db.VarChar(255)
+  frequency     String @db.VarChar(100)
+  unitOfMeasure String @db.VarChar(100)
+
+  // Disaggregation
+  disaggregateBy String? @db.VarChar(255) // JSON array of dimensions
+
+  // Baseline & Target
+  baselineDate  DateTime?
+  baselineValue String?   @db.VarChar(255)
+  target        String?   @db.VarChar(255)
+
+  lastModifiedBy String?  @db.VarChar(255)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  project      Project?               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  program      Program?               @relation("ProgramIndicators", fields: [programId], references: [id], map: "indicators_programId_fkey")
+  objective    Objective?             @relation(fields: [objectiveId], references: [id], onDelete: SetNull)
+  activities   Activity[]
+  measurements IndicatorMeasurement[]
+  organization Organization?          @relation(fields: [organizationId], references: [id], onDelete: Cascade, map: "indicators_organizationId_fkey")
+  orgIndicator OrganizationIndicator? @relation(fields: [orgIndicatorId], references: [id], onDelete: Cascade)
+
+  // Add programId field
+  Intervention    Intervention[]
+  SubIntervention SubIntervention[]
+
+  parentIndicator Indicator?  @relation("IndicatorHierarchy", fields: [parentIndicatorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  childIndicators Indicator[] @relation("IndicatorHierarchy")
+
+  @@index([projectId])
+  @@index([organizationId])
+  @@index([parentIndicatorId])
+  @@index([objectiveId])
+  @@index([programId])
+  @@index([orgIndicatorId])
+  @@map("indicators")
+}
+
+model OrganizationIndicator {
+  id             String         @id @default(cuid())
+  organizationId String
+  programId      String?
+  objectiveId    String?
+  name           String         @db.VarChar(255)
+  type           IndicatorType
+  level          IndicatorLevel
+  definition     String         @db.Text
+  rationale      String?        @db.Text
+
+  // Data Collection
+  dataSource    String @db.VarChar(255)
+  frequency     String @db.VarChar(100)
+  unitOfMeasure String @db.VarChar(100)
+
+  // Disaggregation
+  disaggregateBy String? @db.VarChar(255) // JSON array of dimensions
+
+  // Baseline & Target
+  baselineDate  DateTime?
+  baselineValue String?   @db.VarChar(255)
+  target        String?   @db.VarChar(255)
+
+  lastModifiedBy String?  @db.VarChar(255)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  indicators Indicator[]
+  program    Program?    @relation("OrganizationIndicators", fields: [programId], references: [id], map: "org_indicators_programId_fkey")
+  objective  Objective?  @relation(fields: [objectiveId], references: [id], onDelete: SetNull)
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade, map: "org_indicators_organizationId_fkey")
+
+  @@index([organizationId])
+  @@index([objectiveId])
+  @@index([programId])
+  @@map("organization_indicators")
+}
+
+model IndicatorMeasurement {
+  id          String   @id @default(cuid())
+  indicatorId String
+  value       String   @db.VarChar(255)
+  date        DateTime
+  location    String?  @db.VarChar(255)
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  indicator Indicator @relation(fields: [indicatorId], references: [id], onDelete: Cascade)
+
+  @@index([indicatorId])
+  @@map("indicator_measurements")
+}
+
+// ============================================
+// ACTIVITIES & PLANNING
+// ============================================
+
+model Activity {
+  id                  String    @id @default(cuid())
+  projectId           String?
+  programs            Program[] @relation("ActivityPrograms")
+  organizationId      String
+  indicatorId         String?
+  objectiveId         String?
+  code                String?   @db.VarChar(50)
+  name                String    @db.VarChar(255)
+  description         String?   @db.Text
+  type                String    @db.VarChar(100)
+  levelofIntervention String?
+
+  // Planning
+  startDate DateTime?
+  endDate   DateTime?
+  status    String    @db.VarChar(50)
+
+  interventionId    String? // new FK
+  subInterventionId String? // new FK
+  unitOfMeasure     String?  @db.VarChar(100)
+  targetUnit        Int?
+  costPerUnit       Decimal? @db.Decimal(15, 2)
+  totalBudget       Decimal? @db.Decimal(15, 2)
+  leverage          String?  @db.Text
+
+  // Reporting
+  attendanceRequired Boolean @default(false)
+  piDataRequired     Boolean @default(false)
+  piMeasurement      String? @db.VarChar(255)
+
+  // Targets
+  annualTarget   Int?
+  monthlyTargets Json?
+
+  // Relations
+  project            Project?         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  indicator          Indicator?       @relation(fields: [indicatorId], references: [id], onDelete: SetNull)
+  objective          Objective?       @relation(fields: [objectiveId], references: [id], onDelete: SetNull)
+  attachments        Attachment[]
+  reports            Report[]
+  users              User[]           @relation("UserActivities")
+  subInterventionRel SubIntervention? @relation("ActivitySubIntervention", fields: [subInterventionId], references: [id])
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  Plan               Plan[]
+  Organization       Organization?    @relation(fields: [organizationId], references: [id])
+  Intervention       Intervention?    @relation(fields: [interventionId], references: [id])
+
+  @@index([projectId])
+  @@index([indicatorId])
+  @@index([objectiveId])
+  @@index([organizationId])
+  @@index([interventionId])
+  @@index([subInterventionId])
+  @@map("activities")
+}
+
+model Intervention {
+  id             String        @id @default(cuid())
+  name           String        @db.VarChar(255)
+  Organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId String // make optional for now
+  description    String?       @db.Text
+  objectiveId    String?
+  objective      Objective?    @relation(fields: [objectiveId], references: [id])
+  indicatorId    String?
+  indicator      Indicator?    @relation(fields: [indicatorId], references: [id])
+  activityType   String?       @db.VarChar(255)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @default(now())
+
+  programs        Program[]         @relation("ProgramInterventions")
+  SubIntervention SubIntervention[]
+  Activity        Activity[]
+
+  @@index([indicatorId])
+  @@index([organizationId])
+  @@index([objectiveId])
+}
+
+model SubIntervention {
+  id             String       @id @unique @default(cuid())
+  interventionId String
+  name           String       @db.VarChar(255)
+  description    String?      @db.Text
+  activities     Activity[]   @relation("ActivitySubIntervention")
+  intervention   Intervention @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  Indicator      Indicator?   @relation(fields: [indicatorId], references: [id])
+  indicatorId    String?
+
+  @@index([interventionId])
+  @@index([indicatorId])
+}
+
+// ============================================
+// RESULT FRAMEWORK
+// ============================================
+
+model ResultFramework {
+  id           String   @id @default(cuid())
+  projectId    String
+  level        String   @db.VarChar(50) // Goal, Objective, Output, Input
+  description  String   @db.Text
+  indicators   String   @db.Text // OVIs
+  targets      String?  @db.Text
+  verification String?  @db.Text // MoV
+  assumptions  String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([projectId])
+  @@map("result_frameworks")
+}
+
+// ============================================
+// TASK MANAGEMENT
+// ============================================
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  COMPLETED
+  ON_HOLD
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model Task {
+  id            String       @id @default(cuid())
+  projectId     String
+  assigneeId    String
+  creatorId     String
+  title         String       @db.VarChar(255)
+  description   String?      @db.Text
+  status        TaskStatus   @default(TODO)
+  priority      TaskPriority @default(MEDIUM)
+  dueDate       DateTime?
+  startDate     DateTime?
+  completedDate DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  // Relations
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignee    User         @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  creator     User         @relation("TaskCreator", fields: [creatorId], references: [id])
+  attachments Attachment[]
+
+  @@index([projectId])
+  @@index([assigneeId])
+  @@index([creatorId])
+  @@map("tasks")
+}
+
+// ============================================
+// USER MANAGEMENT
+// ============================================
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING
+}
+
+enum AppRole {
+  super_admin
+  media_manager
+  project_manager_app
+  application_manager
+  db_manager
+}
+
+enum NgoRole {
+  ngo_admin
+  mel
+  program_department
+  project_manager_ngo
+  me_officer
+  field_agent
+}
+
+enum DonorRole {
+  donor_admin
+}
+
+model User {
+  id               String     @id @default(cuid())
+  email            String     @unique @db.VarChar(255)
+  username         String?    @unique @db.VarChar(100)
+  firstName        String     @db.VarChar(100)
+  lastName         String     @db.VarChar(100)
+  avatar           String?    @db.VarChar(500)
+  phone            String?    @db.VarChar(50)
+  title            String?    @db.VarChar(100)
+  department       String?    @db.VarChar(100)
+  bio              String?    @db.Text
+  status           UserStatus @default(PENDING)
+  lastLoginAt      DateTime?
+  emailVerified    Boolean    @default(false)
+  phoneVerified    Boolean    @default(false)
+  twoFactorEnabled Boolean    @default(false)
+  passwordHash     String     @db.VarChar(255)
+  resetToken       String?    @db.VarChar(255)
+  resetTokenExpiry DateTime?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  // Relations
+  memberships    Membership[]
+  sessions       UserSession[]
+  activities     Activity[]          @relation("UserActivities")
+  createdReports Report[]            @relation("ReportCreator")
+  assignedTasks  Task[]              @relation("TaskAssignee")
+  createdTasks   Task[]              @relation("TaskCreator")
+  auditLogs      AuditLog[]
+  notifications  Notification[]
+  dashboards     Dashboard[]
+  projectTeams   ProjectTeamMember[]
+
+  organizationId   String?
+  organization     Organization?     @relation(fields: [organizationId], references: [id])
+  reportRejections ReportRejection[] @relation("UserRejections")
+
+  @@index([organizationId])
+  @@map("users")
+}
+
+model Membership {
+  id             String     @id @default(cuid())
+  userId         String
+  organizationId String
+  appRole        AppRole?
+  ngoRole        NgoRole?
+  donorRole      DonorRole?
+  isActive       Boolean    @default(true)
+  joinedAt       DateTime   @default(now())
+  leftAt         DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  permissions  Permission[]
+
+  @@unique([userId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
+  @@map("memberships")
+}
+
+model OrganizationRole {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String   @db.VarChar(100)
+  description    String?  @db.Text
+  permissions    Json // Store permissions as JSON
+  isSystemRole   Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, name])
+  @@map("organization_roles")
+}
+
+model Permission {
+  id           String   @id @default(cuid())
+  membershipId String
+  resource     String   @db.VarChar(100) // e.g., "projects", "reports", "users"
+  action       String   @db.VarChar(50) // e.g., "read", "write", "delete", "admin"
+  conditions   Json? // Store conditions as JSON (e.g., own records only)
+  createdAt    DateTime @default(now())
+
+  // Relations
+  membership Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+
+  @@unique([membershipId, resource, action])
+  @@map("permissions")
+}
+
+// ============================================
+// PROGRAMS & PROJECTS
+// ============================================
+
+enum PriorityLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model Program {
+  id             String        @id @default(cuid())
+  organizationId String
+  name           String        @db.VarChar(255)
+  description    String?       @db.Text
+  startDate      DateTime?
+  endDate        DateTime?
+  budget         Decimal?      @db.Decimal(15, 2)
+  baseline       Decimal?      @db.Decimal(15, 2)
+  target         Decimal?      @db.Decimal(15, 2)
+  status         ProjectStatus @default(DRAFT)
+  priority       PriorityLevel @default(MEDIUM)
+  sector         String?       @db.VarChar(100)
+  theme          String?       @db.VarChar(100)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  // Relations
+  organization           Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  indicators             Indicator[]             @relation("ProgramIndicators")
+  organizationIndicators OrganizationIndicator[] @relation("OrganizationIndicators")
+  reports                Report[]
+  objectives             Objective[]             @relation("ProgramObjectives")
+  projectId              String?
+  projects               Project[]               @relation("ProjectPrograms")
+  interventions          Intervention[]          @relation("ProgramInterventions")
+  activityId             String?
+  activities             Activity[]              @relation("ActivityPrograms")
+
+  @@index([organizationId])
+  @@map("programs")
+}
+
+// ============================================
+// REPORTING & DASHBOARDS
+// ============================================
+
+// enum ReportType {
+//   PROGRESS
+//   FINANCIAL
+//   IMPACT
+//   COMPLIANCE
+//   CUSTOM
+// }
+
+enum ReportStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  ARCHIVED
+  REJECTED
+}
+
+enum ReportFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  ANNUALLY
+  ONE_TIME
+}
+
+enum ReportType {
+  TRAINING
+  INFRASTRUCTURE
+  PI_ONLY
+  MEETING
+  WORKSHOP
+  SURVEY
+  OTHER
+}
+
+enum LevelofActivity {
+  state
+  district
+  blockName
+  villageName
+}
+
+model Report {
+  id                 String          @id @default(cuid())
+  organizationId     String
+  programId          String?
+  projectId          String?
+  activityId         String?
+  interventionAreaId String?
+  levelofActivity    LevelofActivity
+  creatorId          String
+  title              String?         @db.VarChar(255)
+  type               String?
+  status             ReportStatus    @default(DRAFT)
+
+  // --- Reporting Period ---
+  reportingDate    DateTime // e.g., 2025-07-15
+  reportingMonth   String // e.g., "July"
+  reportingQuarter String // "Q1", "Q2", etc.
+  reportingYear    String // "FY24", "FY25", etc.
+
+  // --- Location / Landscape ---
+  landscape      String?
+  gpsCoordinates String?
+
+  // --- Report Content ---
+  unitType     String? // e.g., "People trained"
+  unitReported Int?
+  description  String?
+
+  // --- PI Data ---
+  piUnitType String? // e.g., "Hectare"
+  piValue    Decimal? @db.Decimal(10, 2)
+
+  rejections ReportRejection[]
+
+  numberOfPeople    Int?
+  disaggregatedJson Json? // optional fallback summary (auto from attendance)
+
+  // --- Leverage Section ---
+  hasLeverage       Boolean  @default(false)
+  leverageSources   String? // ["Government", "Community"]
+  leverageGovt      Decimal? @db.Decimal(12, 2)
+  leverageCsr       Decimal? @db.Decimal(12, 2)
+  leverageCommunity Decimal? @db.Decimal(12, 2)
+
+  submittedAt DateTime?
+  approvedAt  DateTime?
+  publishedAt DateTime?
+  content     Json? // Store report content as JSON
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  organization         Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  program              Program?              @relation(fields: [programId], references: [id], onDelete: SetNull)
+  project              Project?              @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  activity             Activity?             @relation(fields: [activityId], references: [id], onDelete: SetNull)
+  creator              User                  @relation("ReportCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  interventionArea     InterventionArea?     @relation(fields: [interventionAreaId], references: [id], onDelete: Cascade)
+  attachments          Attachment[]
+  infrastructureReport InfrastructureReport?
+  householdReport      HouseholdReport?
+  trainingReport       TrainingReport?
+
+  @@index([organizationId])
+  @@index([interventionAreaId])
+  @@index([programId])
+  @@index([projectId])
+  @@index([activityId])
+  @@index([creatorId])
+  @@map("reports")
+}
+
+model ReportRejection {
+  id String @id @default(cuid())
+
+  reportId     String
+  rejectedById String
+
+  comment   String   @db.Text
+  createdAt DateTime @default(now())
+
+  // Relations
+  report     Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  rejectedBy User   @relation("UserRejections", fields: [rejectedById], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+  @@index([rejectedById])
+}
+
+model InfrastructureReport {
+  id                       String   @id @default(cuid())
+  reportId                 String   @unique
+  infrastructureName       String   @db.VarChar(255)
+  category                 String   @db.VarChar(100)
+  locations                String   @db.Text
+  workType                 String   @db.VarChar(50) // new/retrofitting/restoration
+  dprApproved              Boolean  @default(false)
+  approvedDesignFollowed   Boolean  @default(false)
+  designChangeDetails      String?  @db.Text
+  sanctionBudget           Decimal  @db.Decimal(15, 2)
+  expensesIncurred         Decimal  @db.Decimal(15, 2)
+  workDescription          String   @db.Text
+  benefits                 String   @db.Text
+  preConstructionPhotos    String?  @db.Text // URLs as JSON array
+  duringConstructionPhotos String?  @db.Text // URLs as JSON array
+  postConstructionPhotos   String?  @db.Text // URLs as JSON array
+  infrastructureUniqueId   String   @unique @db.VarChar(255) // System generated ID
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  // Relations
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@map("infrastructure_reports")
+}
+
+model HouseholdReport {
+  id              String          @id @default(cuid())
+  reportId        String          @unique
+  beneficiaryName String          @db.VarChar(255)
+  age             Int
+  gender          String          @db.VarChar(10) // Male/Female
+  socialGroup     String          @db.VarChar(50) // SC/ST/OBC/General
+  maleMembers     Int
+  femaleMembers   Int
+  totalMembers    Int
+  uniqueId        String          @db.VarChar(255)
+  benefits        BenefitReport[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@map("household_reports")
+}
+
+model BenefitType {
+  id             String          @id @default(cuid())
+  name           String // e.g., "Nutritional Kit", "Cash Support"
+  unitType       String // e.g., "kg", "liters", "INR"
+  benefitReports BenefitReport[]
+}
+
+model BenefitReport {
+  id            String          @id @default(cuid())
+  beneficiary   HouseholdReport @relation(fields: [beneficiaryId], references: [id])
+  beneficiaryId String
+
+  benefitType   BenefitType @relation(fields: [benefitTypeId], references: [id])
+  benefitTypeId String
+
+  reportedNumber Float // e.g., 2.5 kg, 3000 INR
+  createdAt      DateTime @default(now())
+
+  @@index([beneficiaryId])
+  @@index([benefitTypeId])
+  @@map("benefit_reports")
+}
+
+model TrainingReport {
+  id           String                @id @default(cuid())
+  reportId     String                @unique
+  dateFrom     DateTime
+  dateTo       DateTime
+  participants TrainingParticipant[]
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+
+  // Relations
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@map("training_reports")
+}
+
+model TrainingParticipant {
+  id               String  @id @default(cuid())
+  trainingReportId String
+  peopleBankId     String? // optional link to PeopleBank
+
+  name         String   @db.VarChar(255)
+  age          Int
+  gender       String   @db.VarChar(10)
+  education    String   @db.VarChar(255)
+  socialGroup  String   @db.VarChar(50)
+  designation  String   @db.VarChar(255)
+  organization String   @db.VarChar(255)
+  mobile       String   @db.VarChar(20)
+  email        String?  @db.VarChar(255)
+  isPwd        Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  trainingReport TrainingReport @relation(fields: [trainingReportId], references: [id], onDelete: Cascade)
+  peopleBank     PeopleBank?    @relation(fields: [peopleBankId], references: [id], onDelete: SetNull)
+
+  @@index([trainingReportId])
+  @@index([peopleBankId])
+  @@map("training_participants")
+}
+
+model PeopleBank {
+  id             String   @id @default(cuid())
+  organizationId String // belongs to an organization
+  name           String   @db.VarChar(255)
+  age            Int
+  phase          Int?     @default(1)
+  gender         String   @db.VarChar(10)
+  mobile         String?  @db.VarChar(20)
+  email          String?  @db.VarChar(255)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  participants TrainingParticipant[]
+
+  @@index([organizationId])
+  @@map("people_bank")
+}
+
+model Dashboard {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String? // If personal dashboard
+  name           String   @db.VarChar(255)
+  description    String?  @db.Text
+  layout         Json // Store dashboard layout as JSON
+  widgets        Json // Store widget configurations as JSON
+  filters        Json? // Store default filters as JSON
+  isDefault      Boolean  @default(false)
+  isPublic       Boolean  @default(false)
+  isTemplate     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@map("dashboards")
+}
+
+// ============================================
+// SYSTEM FEATURES
+// ============================================
+
+model Attachment {
+  id           String   @id @default(cuid())
+  projectId    String?
+  activityId   String?
+  taskId       String?
+  reportId     String?
+  filename     String   @db.VarChar(255)
+  originalName String   @db.VarChar(255)
+  size         Int // File size in bytes
+  url          String   @db.VarChar(500)
+  description  String?  @db.Text
+  uploadedBy   String?  @db.VarChar(255)
+  createdAt    DateTime @default(now())
+
+  // Relations
+  project  Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  activity Activity? @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  task     Task?     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  report   Report?   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([activityId])
+  @@index([taskId])
+  @@index([reportId])
+  @@map("attachments")
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String    @db.VarChar(255)
+  message   String    @db.Text
+  type      String    @db.VarChar(50) // e.g., "info", "warning", "error", "success"
+  isRead    Boolean   @default(false)
+  readAt    DateTime?
+  data      Json? // Additional notification data
+  createdAt DateTime  @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String?
+  action         String   @db.VarChar(100) // e.g., "CREATE", "UPDATE", "DELETE"
+  resource       String   @db.VarChar(100) // e.g., "PROJECT", "USER", "REPORT"
+  resourceId     String?  @db.VarChar(255)
+  oldValues      Json? // Previous state
+  newValues      Json? // New state
+  ipAddress      String?  @db.VarChar(45)
+  userAgent      String?  @db.VarChar(500)
+  timestamp      DateTime @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@map("audit_logs")
+}
+
+model UserSession {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique @db.VarChar(255)
+  ipAddress String?  @db.VarChar(45)
+  userAgent String?  @db.VarChar(500)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_sessions")
+}
+
+model OrganizationSettings {
+  id              String   @id @default(cuid())
+  organizationId  String   @unique
+  timezone        String   @default("UTC") @db.VarChar(50)
+  dateFormat      String   @default("YYYY-MM-DD") @db.VarChar(20)
+  currency        String   @default("USD") @db.VarChar(10)
+  language        String   @default("en") @db.VarChar(10)
+  fiscalYearStart Int      @default(1) // 1-12 (January to December)
+  features        Json? // Enabled features for organization
+  branding        Json? // Custom branding settings
+  integrations    Json? // Third-party integration settings
+  notifications   Json? // Notification preferences
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("organization_settings")
+}
+
+model state {
+  id               String             @id @unique @default(cuid())
+  name             String
+  organizationId   String
+  organization     Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  district         district[]
+  InterventionArea InterventionArea[]
+
+  @@index([organizationId])
+}
+
+model district {
+  id               String             @id @unique @default(cuid())
+  name             String
+  state            state?             @relation(fields: [stateId], references: [id])
+  stateId          String?
+  block            block[]
+  InterventionArea InterventionArea[]
+  organizationId   String
+  organization     Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([stateId])
+  @@index([organizationId])
+}
+
+enum areaType {
+  RURAL
+  URBAN
+}
+
+model block {
+  id               String             @id @unique @default(cuid())
+  name             String
+  district         district?          @relation(fields: [districtId], references: [id])
+  districtId       String?
+  areaType         areaType
+  grampanchaya     gramPanchayat[]
+  InterventionArea InterventionArea[]
+  organizationId   String
+  organization     Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([districtId])
+  @@index([organizationId])
+}
+
+model gramPanchayat {
+  id               String             @id @unique @default(cuid())
+  name             String
+  village          village[]
+  block            block?             @relation(fields: [blockId], references: [id])
+  blockId          String?
+  InterventionArea InterventionArea[]
+  organizationId   String
+  organization     Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([blockId])
+  @@index([organizationId])
+}
+
+model village {
+  id               String             @id @unique @default(cuid())
+  name             String
+  gramPanchayat    gramPanchayat?     @relation(fields: [gramPanchayatId], references: [id])
+  gramPanchayatId  String?
+  InterventionArea InterventionArea[]
+  organizationId   String
+  organization     Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([gramPanchayatId])
+  @@index([organizationId])
+}
+
+enum InterventionAreaStatus {
+  APPROVED
+  PLANNED
+  REJECTED
+}
+
+model InterventionArea {
+  id               String                 @id @default(cuid())
+  projectId        String?
+  serialNumber     Int                    @db.Int
+  state            state?                 @relation(fields: [stateId], references: [id])
+  district         district?              @relation(fields: [districtId], references: [id])
+  blockName        block?                 @relation(fields: [blockId], references: [id])
+  gramPanchayat    gramPanchayat?         @relation(fields: [gramPanchayatId], references: [id])
+  villageName      village?               @relation(fields: [villageId], references: [id])
+  location         String?                @db.VarChar(255)
+  latitude         Decimal?               @db.Decimal(10, 8)
+  longitude        Decimal?               @db.Decimal(11, 8)
+  censusCode       String?                @db.VarChar(50)
+  type             String?                @db.VarChar(255) //RURAL / URBAN
+  totalPopulation  Int?                   @db.Int
+  malePopulation   Int?                   @db.Int
+  femalePopulation Int?                   @db.Int
+  scstPopulation   Int?                   @db.Int
+  households       Int?                   @db.Int
+  geographicalArea Decimal?               @db.Decimal(10, 2) // in hectares
+  status           InterventionAreaStatus @default(PLANNED)
+  date             DateTime
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+
+  // Relations
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  Plan            Plan[]
+  Report          Report[]
+  stateId         String?
+  districtId      String?
+  blockId         String?
+  gramPanchayatId String?
+  villageId       String?
+
+  @@index([projectId])
+  @@index([stateId])
+  @@index([blockId])
+  @@index([districtId])
+  @@index([gramPanchayatId])
+  @@index([villageId])
+  @@map("intervention_areas")
+}
+
+model Plan {
+  id                 String   @id @default(cuid())
+  projectId          String
+  activityId         String
+  interventionAreaId String?
+  organizationId     String // ✅ Added
+  startMonth         DateTime
+  endMonth           DateTime
+  monthlyTargets     Json?
+  status             String   @default("PLANNED")
+  location           String?  @db.VarChar(255)
+
+  // Relations
+  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  activity         Activity          @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  interventionArea InterventionArea? @relation(fields: [interventionAreaId], references: [id], onDelete: Cascade)
+  project          Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([activityId])
+  @@index([interventionAreaId])
+  @@index([projectId])
+  @@index([organizationId])
+}
+
+// Assessment submission
+model Assessment {
+  id               String @id @default(cuid())
+  organizationName String
+  email            String
+  headName         String
+
+  // Overall calculated results
+  totalScore        Int
+  maxTotalScore     Int
+  overallPercentage Int
+  overallStarRating Int
+
+  // Relation to the detailed results for each area
+  areaResults AreaResult[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Model to store the results for each of the 16 evaluation areas
+model AreaResult {
+  id           String     @id @default(cuid())
+  assessmentId String
+  Assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  // Identifier from your assessmentData.json (e.g., "strategicVision")
+  areaId String
+  title  String
+
+  // Calculated results for this specific area
+  score      Int
+  maxScore   Int
+  percentage Int
+  starRating Int
+
+  // Storing the raw responses (the array of 0s and 1s) as a JSON blob
+  // Make sure your database supports the JSON type (PostgreSQL and MySQL do)
+  responses Json
+
+  @@unique([assessmentId, areaId])
+}
+
+
+// ASSET MANAGEMENT
+enum AssetHandOverStatus {
+  ISSUED
+  RETURNED
+}
+
+model Asset {
+  id             String      @id @default(cuid())
+  organizationId String
+  projectId      String?
+  donorId        String?
+  assetName      String      @db.VarChar(255)
+  description    String?     @db.Text
+  purchaseDate   DateTime?
+  purchaseValue  Decimal?    @db.Decimal(15, 2)
+  quantity       Int         @default(1)
+  VariableQuantity Int         @default(1)
+  location       String?     @db.VarChar(255)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  donor        Donor?       @relation(fields: [donorId], references: [id], onDelete: SetNull)
+
+  handovers     AssetHandOver[]
+
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([donorId])
+  @@map("assets")
+}
+
+model AssetHandOver {
+  id           String               @id @default(cuid())
+  assetId      String
+
+  personName   String               @db.VarChar(255)
+  mobileNumber String?              @db.VarChar(20)
+  imageUrl     String?              @db.VarChar(500) // proof of evidence
+  EvidenceCoordinate String?         @db.VarChar(255)
+  date         DateTime             @default(now())
+  status       AssetHandOverStatus
+  remarks      String?              @db.Text
+  createdAt    DateTime             @default(now())
+  ReturnedAt   DateTime?
+  handoverDate   DateTime?
+  // Relations
+  asset        Asset                @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([assetId])
+  @@map("asset_handovers")
+}

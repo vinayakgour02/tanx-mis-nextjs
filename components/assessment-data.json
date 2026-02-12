@@ -1,0 +1,179 @@
+[
+    {
+      "id": "strategicVision",
+      "title": "Strategic Vision, Mission & Results Alignment",
+      "indicators": [
+        "Organization's Vision and Mission are clearly defined, aligned to long-term impact.",
+        "Strategic goals and SMART objectives are explicitly articulated.",
+        "Time-bound key performance indicators (KPIs) exist at organizational level.",
+        "A results-based framework (LFA or equivalent) aligns Vision to program outcomes.",
+        "All programs contribute to strategic indicators & progress is systematically monitored."
+      ]
+    },
+    {
+      "id": "theoryOfChange",
+      "title": "Theory of Change & Results Framework",
+      "indicators": [
+        "A comprehensive Theory of Change (ToC) is developed and regularly updated.",
+        "The ToC includes output, outcome, and impact indicators mapped to themes/sectors.",
+        "The Logical Framework includes MoV, assumptions, and external risks.",
+        "Each strategy includes a risk mitigation matrix.",
+        "A results-based monitoring system tracks performance against the ToC."
+      ]
+    },
+    {
+      "id": "indicatorDevelopment",
+      "title": "Indicator Development & Reference Systems",
+      "indicators": [
+        "A master list of SMART indicators exists (input to impact level).",
+        "Indicator reference sheets define formula, frequency, unit, MoV, and data sources.",
+        "Indicators are harmonized across projects, programs, and organizational strategy.",
+        "Indicator sets are integrated into project designs from inception.",
+        "Proposals and reports consistently use indicators from the master list."
+      ]
+    },
+    {
+      "id": "evaluationPlanning",
+      "title": "Evaluation Planning & Integration",
+      "indicators": [
+        "Organization-level baseline data is available for strategic indicators.",
+        "All major projects undergo baseline, midline, and endline/impact evaluations.",
+        "Evaluations are led or validated by independent external agencies.",
+        "Control/comparison groups are used where feasible.",
+        "Evaluation findings are used to inform adaptive management and strategic decisions."
+      ]
+    },
+    {
+      "id": "monitoringSystems",
+      "title": "Monitoring Systems & MIS Architecture",
+      "indicators": [
+        "Digital MIS is functional and captures all programmatic indicators.",
+        "Field formats are standardized and staff are trained on data input.",
+        "MIS generates real-time dashboards accessible to all management levels.",
+        "MIS informs reviews, course correction, and decision-making.",
+        "MIS is integrated with donor reporting, and progress auto-updates organizational KPIs."
+      ]
+    },
+    {
+      "id": "dataCollection",
+      "title": "Data Collection & Management Protocols",
+      "indicators": [
+        "Standard data collection protocols exist with defined methodology and tools.",
+        "All enumerators are trained and certified in ethical and technical procedures.",
+        "Sampling, consent, and field-level documentation protocols are in place.",
+        "Validation processes - back-checks, triangulation, and peer reviews are institutionalized.",
+        "COB or participatory validation mechanisms are used where appropriate."
+      ]
+    },
+    {
+      "id": "dataSecurity",
+      "title": "Data Security, Privacy & Confidentiality",
+      "indicators": [
+        "A formal data protection and privacy policy exists.",
+        "Systems ensure encryption, backups, and data integrity.",
+        "Role-based access is enforced across MIS and digital platforms.",
+        "Respondent consent is collected and documented systematically.",
+        "Regular IT and security audits are conducted to safeguard data."
+      ]
+    },
+    {
+      "id": "melUnit",
+      "title": "MEL Unit Structure & Resourcing",
+      "indicators": [
+        "A dedicated MEL team/unit exists with clear TORs and authority.",
+        "Sufficient staffing and budget are allocated for MEL activities.",
+        "MEL roles are embedded at multiple levels (project, program, strategy).",
+        "MEL team has access to external technical support and partnerships.",
+        "MEL is represented in senior leadership and decision-making forums."
+      ]
+    },
+    {
+      "id": "sopsForMel",
+      "title": "Standard Operating Procedures (SOPs) for MEL",
+      "indicators": [
+        "SOPs for all MEL functions (planning, monitoring, reporting) are in place.",
+        "SOPs are reviewed annually and version-controlled.",
+        "Staff are trained and accountable for adherence to MEL SOPs.",
+        "SOPs are integrated into onboarding and knowledge systems.",
+        "Compliance with SOPs is monitored, and corrective measures taken."
+      ]
+    },
+    {
+      "id": "qualityAssurance",
+      "title": "Quality Assurance & Data Verification",
+      "indicators": [
+        "Data Quality Assessment (DQA) protocols are applied regularly.",
+        "Structured QA visits and spot-checks are conducted by MEL staff.",
+        "Data anomalies are flagged, addressed, and tracked.",
+        "A feedback mechanism for QA findings exists across teams.",
+        "Quality assurance is documented and feeds into reporting cycles."
+      ]
+    },
+    {
+      "id": "melCapacityBuilding",
+      "title": "MEL Capacity Building",
+      "indicators": [
+        "A continuous MEL training plan exists for all staff levels.",
+        "MEL capacity is embedded in staff induction and ongoing L&D programs.",
+        "MEL-related responsibilities are reflected in staff performance frameworks.",
+        "Cross-functional learning sessions are held regularly.",
+        "A repository of MEL tools, manuals, and e-learning modules is maintained."
+      ]
+    },
+    {
+      "id": "learningKnowledge",
+      "title": "Learning, Knowledge Management & Adaptation",
+      "indicators": [
+        "Key learnings are captured through structured reflection mechanisms.",
+        "\"Pause & Reflect\" sessions or After-Action Reviews are held regularly.",
+        "Lessons learned are documented and shared internally and externally.",
+        "Knowledge products (briefs, case studies, synthesis) are developed.",
+        "Learnings are systematically used to revise programs and strategies."
+      ]
+    },
+    {
+      "id": "reportingCommunication",
+      "title": "Reporting, Communication & Visualization",
+      "indicators": [
+        "Reports align with project log frames and strategic indicators.",
+        "Reporting timelines are consistently met with high quality.",
+        "Reports use visuals, dashboards, and evidence to communicate impact.",
+        "Reports are tailored for diverse stakeholders (donors, boards, partners).",
+        "Internal and external feedback is used to strengthen future reporting."
+      ]
+    },
+    {
+      "id": "financialIntegration",
+      "title": "Financial Integration with MEL",
+      "indicators": [
+        "Dedicated MEL budget lines are included in all project proposals.",
+        "Expenditure is tracked against MEL plans and outcomes.",
+        "Cost-effectiveness and Value-for-Money (VfM) analysis is conducted.",
+        "Finance and MEL teams jointly review performance and utilization.",
+        "MEL investments are evaluated for return on impact."
+      ]
+    },
+    {
+      "id": "accountabilityFeedback",
+      "title": "Accountability & Stakeholder Feedback Systems",
+      "indicators": [
+        "Feedback mechanisms (surveys, hotlines, suggestion boxes) are in place.",
+        "Stakeholder engagement and grievance redressal systems are operational.",
+        "Feedback trends are analyzed and reported periodically.",
+        "Programs adapt based on feedback from beneficiaries and partners.",
+        "Stakeholders are informed about actions taken in response to their input."
+      ]
+    },
+    {
+      "id": "governanceOversight",
+      "title": "Governance, Oversight & MEL Leadership",
+      "indicators": [
+        "MEL is a standing agenda item in Board/SMT meetings.",
+        "MEL performance and compliance are periodically reviewed.",
+        "MEL systems are aligned with global standards (SDGs, OECD DAC, etc.).",
+        "Leadership actively champions MEL culture and transparency.",
+        "MEL informs strategic pivots and institutional learning."
+      ]
+    }
+  ]
+  

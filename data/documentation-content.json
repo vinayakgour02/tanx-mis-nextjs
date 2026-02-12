@@ -1,0 +1,826 @@
+{
+  "featureModules": [
+    {
+      "title": "Organization Profile",
+      "description": "Maintain your organization's identity and required details",
+      "icon": "Building2",
+      "color": "from-slate-500 to-slate-600",
+      "href": "/org-dashboard/profile",
+      "features": [
+        {
+          "name": "Profile Basics",
+          "description": "Core fields to unlock all features",
+          "icon": "Building2",
+          "details": [
+            "Name, logo, and contact information",
+            "Registration and compliance details",
+            "Location and areas of operation",
+            "Auto-saved updates"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Programs Management",
+      "description": "Program setup with budgeting and performance tracking",
+      "icon": "Layers",
+      "color": "from-green-500 to-green-600",
+      "href": "/org-dashboard/programs",
+      "features": [
+        {
+          "name": "Program Planning",
+          "description": "Setup with themes and sectors",
+          "icon": "Building2",
+          "details": [
+            "Name and description",
+            "Theme/sector classification",
+            "Budget allocation",
+            "Timeline",
+            "Baseline and targets",
+            "Multi-project coordination"
+          ]
+        },
+        {
+          "name": "Project Integration",
+          "description": "Link and manage projects under programs",
+          "icon": "Building2",
+          "details": [
+            "Project–program relationships",
+            "Hierarchical organization",
+            "Program-level reporting",
+            "Consolidated budgeting",
+            "Cross-project insights"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Projects Management",
+      "description": "Complete project lifecycle with funding, timelines, and coordination",
+      "icon": "FolderTree",
+      "color": "from-blue-500 to-blue-600",
+      "href": "/org-dashboard/projects",
+      "features": [
+        {
+          "name": "Project Creation",
+          "description": "Multi-tab form with basic details, funding, and program linking",
+          "icon": "PlusCircle",
+          "details": [
+            "Project name, code, description",
+            "Status management (Draft, Active, Completed)",
+            "Timeline with start/end dates",
+            "Budget and currency",
+            "Impact metrics (direct/indirect beneficiaries)",
+            "Theme categorization"
+          ]
+        },
+        {
+          "name": "Funding Management",
+          "description": "Track multiple funding sources and donor relationships",
+          "icon": "DollarSign",
+          "details": [
+            "Multiple donors per project",
+            "Annual funding tracking",
+            "Currency support",
+            "Create donors on-the-fly",
+            "Funding history and reports"
+          ]
+        },
+        {
+          "name": "Project Actions",
+          "description": "Operations and status management",
+          "icon": "Settings",
+          "details": [
+            "View details",
+            "Edit (admin only)",
+            "Status updates",
+            "Delete with confirmation",
+            "Search and filter",
+            "Export data"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Indicators",
+      "description": "Define and track KPIs used across objectives and projects",
+      "icon": "Waypoints",
+      "color": "from-amber-500 to-amber-600",
+      "href": "/org-dashboard/indicators",
+      "features": [
+        {
+          "name": "Indicator Library",
+          "description": "Central place to manage all indicators",
+          "icon": "Waypoints",
+          "details": [
+            "Create and categorize indicators",
+            "Units, baselines, and targets",
+            "Disaggregation support"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Objectives Framework",
+      "description": "Multi-level objectives with tracking and statistics",
+      "icon": "Target",
+      "color": "from-purple-500 to-purple-600",
+      "href": "/org-dashboard/objectives",
+      "features": [
+        {
+          "name": "Hierarchical Objectives",
+          "description": "Four-level structure for comprehensive planning",
+          "icon": "ClipboardList",
+          "details": [
+            "Goal, Outcome, Output, Activity levels",
+            "Assign at org/program/project",
+            "Code-based identification"
+          ]
+        },
+        {
+          "name": "Statistics Dashboard",
+          "description": "Overview across organization",
+          "icon": "BarChart3",
+          "details": [
+            "Counts by type and level",
+            "Visual progress indicators",
+            "Trend analysis"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Activities",
+      "description": "Plan and track upcoming work linked to objectives and projects",
+      "icon": "Calendar",
+      "color": "from-orange-500 to-orange-600",
+      "href": "/org-dashboard/activities",
+      "features": [
+        {
+          "name": "Scheduling",
+          "description": "Create, assign, and monitor activities",
+          "icon": "Calendar",
+          "details": [
+            "Due dates and statuses",
+            "Activity types",
+            "Recent activity feed"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Plans",
+      "description": "Annual or strategic plans that align programs and projects",
+      "icon": "ClipboardList",
+      "color": "from-cyan-500 to-cyan-600",
+      "href": "/org-dashboard/plans",
+      "features": [
+        {
+          "name": "Plan Builder",
+          "description": "Create plans and review details in dialogs",
+          "icon": "ClipboardList",
+          "details": [
+            "Create/view plan dialogs",
+            "Plan status and timelines",
+            "Progress overview"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Team",
+      "description": "Manage organization users, roles, and access",
+      "icon": "Users",
+      "color": "from-indigo-500 to-indigo-600",
+      "href": "/org-dashboard/team",
+      "features": [
+        {
+          "name": "Members",
+          "description": "Add, edit, and view team members",
+          "icon": "Users",
+          "details": [
+            "Role-based access",
+            "Member details dialogs",
+            "Invite new members"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Intervention Areas",
+      "description": "Define geographic or thematic areas for interventions",
+      "icon": "MapPin",
+      "color": "from-rose-500 to-rose-600",
+      "href": "/org-dashboard/intervention-area",
+      "features": [
+        {
+          "name": "Areas Table",
+          "description": "Filter, paginate, and add new areas",
+          "icon": "MapPin",
+          "details": [
+            "Faceted filters and column controls",
+            "Add intervention dialog",
+            "Inline sorting"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Reports",
+      "description": "Create and view structured reports",
+      "icon": "FileText",
+      "color": "from-teal-500 to-teal-600",
+      "href": "/org-dashboard/reports",
+      "features": [
+        {
+          "name": "Report Builder",
+          "description": "Create, view, and export reports",
+          "icon": "FileText",
+          "details": [
+            "Create/view report dialogs",
+            "Report list with columns",
+            "Download options (where available)"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Analytics",
+      "description": "Visualize trends and KPIs",
+      "icon": "BarChart3",
+      "color": "from-fuchsia-500 to-fuchsia-600",
+      "href": "/org-dashboard/analytics",
+      "features": [
+        {
+          "name": "Dashboards",
+          "description": "Trend charts and summaries",
+          "icon": "BarChart3",
+          "details": [
+            "Project trends",
+            "Activity and objective summaries",
+            "Organization-wide stats"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Settings",
+      "description": "Administrative configuration of the org dashboard",
+      "icon": "Settings",
+      "color": "from-gray-500 to-gray-600",
+      "href": "/org-dashboard/settings",
+      "features": [
+        {
+          "name": "Preferences",
+          "description": "Control access, preferences, and organization-level options",
+          "icon": "Settings",
+          "details": [
+            "Permissions (role dependent)",
+            "Org-wide preferences",
+            "Data management"
+          ]
+        }
+      ]
+    }
+  ],
+  "moduleFlows": {
+    "/org-dashboard/profile": [
+      {
+        "title": "Complete organization profile",
+        "steps": [
+          "Open Organization Profile",
+          "Upload organization logo (optional)",
+          "Fill basic details (name, email, phone)",
+          "Add registration and compliance information",
+          "Provide address and areas of operation",
+          "Save changes and complete any missing required fields"
+        ]
+      }
+    ],
+    "/org-dashboard/programs": [
+      {
+        "title": "Create a program",
+        "steps": [
+          "Open Programs",
+          "Click Create Program",
+          "Enter name and description",
+          "Choose theme/sector and timeframe",
+          "Set baseline and targets (optional)",
+          "Save the program"
+        ]
+      },
+      {
+        "title": "Link projects to a program",
+        "steps": [
+          "Create or open a project",
+          "In Basic Details, select the Program",
+          "Save project to associate"
+        ]
+      }
+    ],
+    "/org-dashboard/projects": [
+      {
+        "title": "Create a project",
+        "steps": [
+          "Open Projects → New Project",
+          "Fill Basic Details (name, code, description, timeline)",
+          "Assign a Program (optional)",
+          "Set beneficiaries and themes",
+          "Switch to Funding tab and add donors",
+          "Review and submit"
+        ]
+      },
+      {
+        "title": "Manage project status",
+        "steps": [
+          "Open Projects",
+          "Use status control on a row",
+          "Select new status (requires permissions)"
+        ]
+      }
+    ],
+    "/org-dashboard/indicators": [
+      {
+        "title": "Create an indicator",
+        "steps": [
+          "Open Indicators",
+          "Click New Indicator",
+          "Provide name, unit, and baseline",
+          "Set target and disaggregation (if used)",
+          "Save and verify in the table"
+        ]
+      },
+      {
+        "title": "Assign indicator to objectives/projects",
+        "steps": [
+          "Open related Objective or Project",
+          "Use indicator linking option (where available)",
+          "Confirm and save"
+        ]
+      }
+    ],
+    "/org-dashboard/objectives": [
+      {
+        "title": "Create objectives hierarchy",
+        "steps": [
+          "Open Objectives",
+          "Click Create Objective",
+          "Select level (Goal/Outcome/Output/Activity)",
+          "Choose assignment (Org/Program/Project)",
+          "Add description and code",
+          "Save"
+        ]
+      }
+    ],
+    "/org-dashboard/activities": [
+      {
+        "title": "Schedule an activity",
+        "steps": [
+          "Open Activities",
+          "Click New Activity",
+          "Enter title, due date, and type",
+          "Assign owner (optional)",
+          "Set status and save"
+        ]
+      },
+      {
+        "title": "Update activity status",
+        "steps": [
+          "Open Activities",
+          "Find the activity in list",
+          "Change status (upcoming/in progress/completed)"
+        ]
+      }
+    ],
+    "/org-dashboard/plans": [
+      {
+        "title": "Create a plan",
+        "steps": [
+          "Open Plans",
+          "Click Create Plan",
+          "Fill plan details and timeframe",
+          "Save to generate plan entry",
+          "Use View dialog to review"
+        ]
+      }
+    ],
+    "/org-dashboard/team": [
+      {
+        "title": "Add a team member",
+        "steps": [
+          "Open Team",
+          "Click Add Member",
+          "Enter name, email, and role",
+          "Save to invite/add member"
+        ]
+      },
+      {
+        "title": "Edit a team member",
+        "steps": [
+          "Open Team",
+          "Use row actions → Edit",
+          "Update role or details",
+          "Save"
+        ]
+      }
+    ],
+    "/org-dashboard/intervention-area": [
+      {
+        "title": "Add an intervention area",
+        "steps": [
+          "Open Intervention Areas",
+          "Click Add Intervention",
+          "Enter name and optional metadata",
+          "Save"
+        ]
+      },
+      {
+        "title": "Filter areas",
+        "steps": [
+          "Open Intervention Areas",
+          "Use filters/faceted controls above table",
+          "Adjust columns using View options"
+        ]
+      }
+    ],
+    "/org-dashboard/reports": [
+      {
+        "title": "Create a report",
+        "steps": [
+          "Open Reports",
+          "Click Create Report",
+          "Enter report title and scope",
+          "Save and open View dialog to preview"
+        ]
+      }
+    ],
+    "/org-dashboard/analytics": [
+      {
+        "title": "Review analytics",
+        "steps": [
+          "Open Analytics",
+          "Review charts and trends",
+          "Use filters (if available) to refine"
+        ]
+      }
+    ],
+    "/org-dashboard/settings": [
+      {
+        "title": "Configure settings",
+        "steps": [
+          "Open Settings",
+          "Adjust organization preferences",
+          "Review permissions (if you are an admin)",
+          "Save changes"
+        ]
+      }
+    ]
+  },
+  "navigationItems": [
+    { "title": "Overview", "href": "#overview", "icon": "FileText" },
+    { "title": "Organization Profile", "href": "#organization-profile", "icon": "Building2" },
+    { "title": "Programs Management", "href": "#programs-management", "icon": "Layers" },
+    { "title": "Projects Management", "href": "#projects-management", "icon": "FolderTree" },
+    { "title": "Indicators", "href": "#indicators", "icon": "Waypoints" },
+    { "title": "Objectives Framework", "href": "#objectives-framework", "icon": "Target" },
+    { "title": "Activities", "href": "#activities", "icon": "Calendar" },
+    { "title": "Plans", "href": "#plans", "icon": "ClipboardList" },
+    { "title": "Team Management", "href": "#team", "icon": "Users" },
+    { "title": "Intervention Areas", "href": "#intervention-areas", "icon": "MapPin" },
+    { "title": "Reports", "href": "#reports", "icon": "FileText" },
+    { "title": "Analytics", "href": "#analytics", "icon": "BarChart3" },
+    { "title": "Settings", "href": "#settings", "icon": "Settings" },
+    { "title": "Common Tasks", "href": "#tasks", "icon": "CheckCircle" },
+    { "title": "Roles & Permissions", "href": "#roles", "icon": "Settings" },
+    { "title": "Support", "href": "#support", "icon": "AlertCircle" }
+  ],
+  "moduleImages": {
+    "/org-dashboard/profile": [
+      {
+        "title": "Organization Details",
+        "description": "Basic organization information and contact details form",
+        "alt": "Organization profile form with basic details",
+        "src": "/organzation_detail.png",
+        "aspectRatio": "horizontal"
+      },
+      {
+        "title": "Basic Details Form",
+        "description": "Core organization information input fields",
+        "alt": "Basic organization details form",
+        "src": "/basic_detail.png",
+        "aspectRatio": "horizontal"
+      },
+      {
+        "title": "Legal Registration Details",
+        "description": "Legal and registration information section",
+        "alt": "Legal registration form fields",
+        "src": "/legal_registration_detail.png",
+        "aspectRatio": "horizontal"
+      },
+      {
+        "title": "Tax Compliance Details",
+        "description": "Tax and compliance information form",
+        "alt": "Tax compliance form section",
+        "src": "/tax_compilace_detail.png",
+        "aspectRatio": "horizontal"
+      }
+    ],
+    "/org-dashboard/programs": [
+      {
+        "title": "View All Programs",
+        "description": "Programs list view with status indicators and actions",
+        "alt": "Programs dashboard table view",
+        "src": "/view_all_programs.png",
+        "aspectRatio": "horizontal"
+      },
+      {
+        "title": "Create New Program",
+        "description": "Program creation form with theme and budget fields",
+        "alt": "Create program dialog form",
+        "src": "/create_new_program.png",
+        "aspectRatio": "vertical"
+      }
+    ],
+    "/org-dashboard/projects": [
+      {
+        "title": "View and Search Projects",
+        "description": "Projects table with search, filter and status management",
+        "alt": "Projects table with search and filters",
+        "src": "/view_and_search_projects.png",
+        "aspectRatio": "horizontal"
+      },
+      {
+        "title": "New Project Basic Details",
+        "description": "Project creation form - basic information tab",
+        "alt": "New project form basic details tab",
+        "src": "/new_project_basic_detail.png",
+        "aspectRatio": "horizontal"
+      },
+      {
+        "title": "Adding Donor to Project",
+        "description": "Project funding - donor selection and management",
+        "alt": "Add donor to project form",
+        "src": "/adding_donor_to_project.png",
+        "aspectRatio": "vertical"
+      },
+      {
+        "title": "Creating Donor for Project",
+        "description": "Create new donor dialog for project funding",
+        "alt": "Create new donor form",
+        "src": "/creating_donor_for_project.png",
+        "aspectRatio": "vertical"
+      },
+      {
+        "title": "Assigning Team Member to Project",
+        "description": "Project team management - assign team members",
+        "alt": "Assign team member to project dialog",
+        "src": "/assigning_team_member_to_project.png",
+        "aspectRatio": "vertical"
+      },
+      {
+        "title": "New Project Indicator",
+        "description": "Project indicators management and assignment",
+        "alt": "Project indicator assignment form",
+        "src": "/new_project_indicator.png",
+        "aspectRatio": "horizontal"
+      },
+      {
+        "title": "New Project Objective",
+        "description": "Project objectives creation and linking",
+        "alt": "Project objective creation form",
+        "src": "/new_proejct_objective.png",
+        "aspectRatio": "horizontal"
+      },
+      {
+        "title": "Toggle Project Status",
+        "description": "Project status management and updates",
+        "alt": "Project status toggle interface",
+        "src": "/toggle_project_status.png",
+        "aspectRatio": "horizontal"
+      },
+      {
+        "title": "Edit, View, Delete Project",
+        "description": "Project actions menu and management options",
+        "alt": "Project action menu with edit, view, delete options",
+        "src": "/edit_view_delete_specific_project.png",
+        "aspectRatio": "horizontal"
+      },
+      {
+        "title": "Adding Intervention Area to Project",
+        "description": "Project intervention area assignment",
+        "alt": "Add intervention area to project dialog",
+        "src": "/adding_intervention_area_to_project.png",
+        "aspectRatio": "vertical"
+      }
+    ],
+    "/org-dashboard/indicators": [
+      {
+        "title": "View All Indicators",
+        "description": "Indicators library with edit actions and management",
+        "alt": "Indicators table with edit options",
+        "src": "/viewing_all_indicators_with_edit_Action.png",
+        "aspectRatio": "horizontal"
+      },
+      {
+        "title": "Creating New Indicator",
+        "description": "New indicator creation form for projects or organization",
+        "alt": "Create new indicator form dialog",
+        "src": "/creating_new_indicator_for_project_or_organziation.png",
+        "aspectRatio": "vertical"
+      }
+    ],
+    "/org-dashboard/objectives": [
+      {
+        "title": "View All Objectives",
+        "description": "Objectives hierarchy table with levels and assignments",
+        "alt": "Objectives table showing hierarchy structure",
+        "src": "/viewing_all_objectives.png",
+        "aspectRatio": "horizontal"
+      },
+      {
+        "title": "Creating Objective",
+        "description": "New objective creation form with level selection",
+        "alt": "Create objective form with level and assignment options",
+        "src": "/creating_objective.png",
+        "aspectRatio": "vertical"
+      }
+    ],
+    "/org-dashboard/activities": [
+      {
+        "title": "View Activities with Actions",
+        "description": "Activities list with delete and view options",
+        "alt": "Activities table with action buttons",
+        "src": "/viewing_activity_with_delete_and_view_option.png",
+        "aspectRatio": "horizontal"
+      },
+      {
+        "title": "Creating New Activity",
+        "description": "Activity creation form with scheduling options",
+        "alt": "Create new activity form dialog",
+        "src": "/creating_new_activity.png",
+        "aspectRatio": "vertical"
+      }
+    ],
+    "/org-dashboard/plans": [
+      {
+        "title": "View All Plans",
+        "description": "Strategic plans list with timeline and status information",
+        "alt": "Plans table with status and timeline",
+        "src": "/view_all_plans.png",
+        "aspectRatio": "horizontal"
+      },
+      {
+        "title": "Create New Plan",
+        "description": "Plan creation form with details and timeline",
+        "alt": "Create new plan form dialog",
+        "src": "/create_new_plan.png",
+        "aspectRatio": "vertical"
+      }
+    ],
+    "/org-dashboard/team": [
+      {
+        "title": "Dashboard Overview",
+        "description": "Main dashboard with team and project overview",
+        "alt": "Organization dashboard homepage",
+        "src": "/dashboard.png",
+        "aspectRatio": "horizontal"
+      }
+    ],
+    "/org-dashboard/intervention-area": [
+      {
+        "title": "View All Intervention Areas",
+        "description": "Intervention areas table with filters and sorting",
+        "alt": "Intervention areas management table",
+        "src": "/view_all_intervention_area.png",
+        "aspectRatio": "horizontal"
+      },
+      {
+        "title": "Add New Intervention Area",
+        "description": "Create new intervention area form",
+        "alt": "Add intervention area form dialog",
+        "src": "/add_new_intervention_area.png",
+        "aspectRatio": "vertical"
+      }
+    ],
+    "/org-dashboard/reports": [
+      {
+        "title": "View All Reports",
+        "description": "Reports dashboard with creation and download options",
+        "alt": "Reports table with management options",
+        "src": "/view_all_reports.png",
+        "aspectRatio": "horizontal"
+      },
+      {
+        "title": "Add Report Step 1",
+        "description": "Report creation wizard - initial setup",
+        "alt": "Create report form step 1",
+        "src": "/add_report_1.png",
+        "aspectRatio": "vertical"
+      },
+      {
+        "title": "Add Report Step 2",
+        "description": "Report creation wizard - configuration details",
+        "alt": "Create report form step 2",
+        "src": "/add_report_2.png",
+        "aspectRatio": "vertical"
+      },
+      {
+        "title": "Add Report Final",
+        "description": "Report creation wizard - final configuration",
+        "alt": "Create report form final step",
+        "src": "/add_reports_4.png",
+        "aspectRatio": "vertical"
+      }
+    ]
+  },
+  "commonTasks": [
+    {
+      "task": "Create a new project with funding",
+      "steps": [
+        "Go to Projects → New Project",
+        "Fill basic details (name, description, status, timeline)",
+        "Set budget and currency",
+        "Add beneficiaries (direct/indirect)",
+        "Open Funding tab → Add Funding",
+        "Select or create donor, amount, and year",
+        "Review and submit"
+      ],
+      "icon": "FolderTree"
+    },
+    {
+      "task": "Set up objectives hierarchy",
+      "steps": [
+        "Open Objectives",
+        "Create Objective → choose level (Goal/Outcome/Output/Activity)",
+        "Choose assignment (Organization/Program/Project)",
+        "Enter description and optional code",
+        "Link to project or program if needed",
+        "Save and review in table"
+      ],
+      "icon": "Target"
+    },
+    {
+      "task": "Manage project status and progress",
+      "steps": [
+        "Open Projects",
+        "Search/filter as needed",
+        "Use status dropdown to update (requires permissions)",
+        "Open details to view progress",
+        "Use actions to edit or delete as allowed"
+      ],
+      "icon": "CheckCircle"
+    },
+    {
+      "task": "Create programs and link projects",
+      "steps": [
+        "Open Programs",
+        "Create Program and fill details",
+        "Set budget and timeline",
+        "Define baseline and targets",
+        "When creating projects, select this program in Basic Details"
+      ],
+      "icon": "Layers"
+    }
+  ],
+  "rolesAndPermissions": [
+    {
+      "role": "Administrator",
+      "description": "Full access to all features and data management",
+      "permissions": [
+        "Create, edit, and delete projects",
+        "Manage programs and objectives",
+        "Update project statuses",
+        "Add and remove team members",
+        "Configure organization settings",
+        "Access all reports and analytics"
+      ],
+      "color": "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+    },
+    {
+      "role": "Project Manager",
+      "description": "Manage assigned projects and related activities",
+      "permissions": [
+        "Edit assigned projects",
+        "View all projects and programs",
+        "Create and manage objectives",
+        "Update project progress",
+        "Generate project reports",
+        "Manage project team members"
+      ],
+      "color": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+    },
+    {
+      "role": "Viewer",
+      "description": "Read-only access to organizational data",
+      "permissions": [
+        "View projects and programs",
+        "Access objectives and indicators",
+        "View reports and dashboards",
+        "Export allowed data",
+        "Participate in assigned activities",
+        "Comment on projects"
+      ],
+      "color": "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+    }
+  ]
+}

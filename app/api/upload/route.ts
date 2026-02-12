@@ -2,6 +2,14 @@ import { NextResponse } from 'next/server'
 import { uploadToCloudinary } from '@/lib/cloudinary'
 import sharp from 'sharp'
 
+
+export const config = {
+  api: {
+    bodyParser: false, // Disabling bodyParser is necessary for manual FormData handling
+    sizeLimit: '10mb', // Increase this to 10mb or more depending on your needs
+  },
+};
+
 export async function POST(request: Request) {
   try {
     const formData = await request.formData()

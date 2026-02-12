@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { AssetDialog } from "@/components/assets/AssetDialog";
 import { Progress } from "@/components/ui/progress";
+import { AssetBulkUpload } from "@/components/AssetBulkUpload";
 
 export default function AssetsPage() {
   const { data: session } = useSession();
@@ -96,6 +97,7 @@ export default function AssetsPage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <AssetBulkUpload onSuccess={fetchAssets} />
             <AssetDialog onSuccess={fetchAssets} />
             <Button variant="outline" size="sm" onClick={fetchAssets} className="h-9">
                <RefreshCcw className="w-3.5 h-3.5 mr-2" /> Refresh

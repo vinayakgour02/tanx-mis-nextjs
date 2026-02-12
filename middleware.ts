@@ -69,9 +69,9 @@ export default withAuth(
         }
 
         // 🚫 Asset Management page protection
-        if (needsAssetManagement && !org?.hasAccessToAssetManagement) {
-          return NextResponse.redirect(new URL("/unauthorized", req.url))
-        }
+        // if (needsAssetManagement && !org?.hasAccessToAssetManagement) {
+        //   return NextResponse.redirect(new URL("/unauthorized", req.url))
+        // }
       } catch (error) {
         console.error("Middleware module access error:", error)
         return NextResponse.redirect(new URL("/unauthorized", req.url))

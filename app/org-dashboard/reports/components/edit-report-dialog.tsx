@@ -124,7 +124,7 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
   const [benefits, setBenefits] = useState<Benefit[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
+
   // Organization and PeopleBank state
   const [organization, setOrganization] = useState<any>(null)
   const [peopleBank, setPeopleBank] = useState<any[]>([])
@@ -185,14 +185,14 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
     },
     enabled: open,
   })
-  
+
   // Update organization state when data changes
   useEffect(() => {
     if (orgData) {
       setOrganization(orgData)
     }
   }, [orgData])
-  
+
   // Fetch PeopleBank data for organizations with access
   const { data: peopleBankData, isLoading: isLoadingPeopleBank } = useQuery({
     queryKey: ["peopleBank"],
@@ -205,14 +205,14 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
     },
     enabled: open && !!orgData?.hasAccesstoPeopleBank
   })
-  
+
   // Update peopleBank state when data changes
   useEffect(() => {
     if (peopleBankData) {
       setPeopleBank(peopleBankData)
     }
   }, [peopleBankData])
-  
+
   // Fetch report details
   const { data: report, isLoading: isLoadingReport } = useQuery({
     queryKey: ["report-edit", reportId],
@@ -250,6 +250,7 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
         trainingDateTo: report.trainingReport?.dateTo ? new Date(report.trainingReport.dateTo) : undefined,
         // Infrastructure fields
         infrastructureName: report.infrastructureReport?.infrastructureName || undefined,
+
         category: report.infrastructureReport?.category || undefined,
         workType: report.infrastructureReport?.workType || undefined,
         dprApproved: report.infrastructureReport?.dprApproved || false,
@@ -259,11 +260,11 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
         expensesIncurred: report.infrastructureReport?.expensesIncurred || undefined,
         workDescription: report.infrastructureReport?.workDescription || undefined,
         benefits: report.infrastructureReport?.benefits || undefined,
-        preConstructionPhotos: report.infrastructureReport?.preConstructionPhotos ? 
+        preConstructionPhotos: report.infrastructureReport?.preConstructionPhotos ?
           JSON.parse(report.infrastructureReport.preConstructionPhotos) : [],
-        duringConstructionPhotos: report.infrastructureReport?.duringConstructionPhotos ? 
+        duringConstructionPhotos: report.infrastructureReport?.duringConstructionPhotos ?
           JSON.parse(report.infrastructureReport.duringConstructionPhotos) : [],
-        postConstructionPhotos: report.infrastructureReport?.postConstructionPhotos ? 
+        postConstructionPhotos: report.infrastructureReport?.postConstructionPhotos ?
           JSON.parse(report.infrastructureReport.postConstructionPhotos) : [],
         // Household fields
         beneficiaryName: report.householdReport?.beneficiaryName || undefined,
@@ -291,9 +292,9 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
           isPwd: p.isPwd || false,
           peopleBankId: p.peopleBankId || undefined,
         }));
-        
+
         setParticipants(loadedParticipants);
-        
+
         // If any participants are from PeopleBank, enable the PeopleBank selection by default
         if (loadedParticipants.some((p: any) => p.peopleBankId)) {
           setUsePeopleBank(true);
@@ -317,21 +318,21 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
     setError(null)
     try {
       // Prepare participants data for training reports
-      const participantsData = report?.type === "Training" && participants.length > 0 
+      const participantsData = report?.type === "Training" && participants.length > 0
         ? participants.filter(p => p.name && p.age && p.gender)
-            .map(p => ({
-              name: p.name,
-              age: p.age,
-              gender: p.gender,
-              education: p.education || '',
-              socialGroup: p.socialGroup || '',
-              designation: p.designation || '',
-              organization: p.organization || '',
-              mobile: p.mobile || '',
-              email: p.email || '',
-              isPwd: Boolean(p.isPwd),
-              peopleBankId: p.peopleBankId || null
-            }))
+          .map(p => ({
+            name: p.name,
+            age: p.age,
+            gender: p.gender,
+            education: p.education || '',
+            socialGroup: p.socialGroup || '',
+            designation: p.designation || '',
+            organization: p.organization || '',
+            mobile: p.mobile || '',
+            email: p.email || '',
+            isPwd: Boolean(p.isPwd),
+            peopleBankId: p.peopleBankId || null
+          }))
         : []
 
       // Prepare benefits data for household reports
@@ -365,21 +366,21 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
       }
 
       const updatedReport = await response.json()
-      
+
       // Show success message
       const participantCount = report?.type === "Training" ? participantsData.length : 0
       const benefitCount = report?.type === "Household" ? benefitsData.length : 0
-      
+
       let description = `${report?.type || "Activity"} report has been updated.`
       if (report?.type === "Training" && participantCount > 0) {
         description = `Training report updated with ${participantCount} participant${participantCount !== 1 ? 's' : ''}.`
       } else if (report?.type === "Household" && benefitCount > 0) {
         description = `Household report updated with ${benefitCount} benefit${benefitCount !== 1 ? 's' : ''}.`
       }
-      
+
       toast.success("Report updated successfully!", { description })
       setOpen(false)
-      
+
       if (onReportUpdated) {
         onReportUpdated()
       }
@@ -407,7 +408,7 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
       "January", "February", "March", "April", "May", "June",
       "July", "August", "September", "October", "November", "December"
     ].indexOf(monthName)
-    
+
     if (monthIndex >= 0 && monthIndex <= 2) return "Q1"
     if (monthIndex >= 3 && monthIndex <= 5) return "Q2"
     if (monthIndex >= 6 && monthIndex <= 8) return "Q3"
@@ -425,7 +426,7 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
     })
     return () => subscription.unsubscribe()
   }, [form])
-  
+
   // Reset state when dialog closes
   useEffect(() => {
     if (!open) {
@@ -434,6 +435,32 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
       setUsePeopleBank(false)
     }
   }, [open])
+
+
+  const handleFileUpload = async (files: File[], folder: string): Promise<UploadedFile[]> => {
+    const uploadedFiles: UploadedFile[] = [];
+
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", folder);
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to upload file ${file.name}`);
+      }
+
+      const result = await response.json();
+      uploadedFiles.push(result);
+    }
+
+    return uploadedFiles;
+  };
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -791,8 +818,8 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
                         {organization?.hasAccesstoPeopleBank && (
                           <div className="space-y-4">
                             <div className="flex items-center space-x-2 pt-2">
-                              <Checkbox 
-                                id="usePeopleBank" 
+                              <Checkbox
+                                id="usePeopleBank"
                                 checked={usePeopleBank}
                                 onCheckedChange={(checked) => setUsePeopleBank(checked as boolean)}
                               />
@@ -801,7 +828,7 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
                                 <span>Select participants from Youth Bank</span>
                               </Label>
                             </div>
-                            
+
                             {/* Always show PeopleBank list when organization has access */}
                             <div className="space-y-4">
                               <div className="flex items-center justify-between">
@@ -810,7 +837,7 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
                                   {isLoadingPeopleBank ? 'Loading...' : `${peopleBank.length} people available`}
                                 </div>
                               </div>
-                              
+
                               {isLoadingPeopleBank ? (
                                 <div className="text-sm text-muted-foreground">Loading Youth Bank data...</div>
                               ) : peopleBank.length === 0 ? (
@@ -821,7 +848,7 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
                                     const isSelected = participants.some(p => p.peopleBankId === person.id);
                                     return (
                                       <div key={person.id} className={`flex items-center space-x-2 p-2 rounded ${isSelected ? 'bg-blue-100 border border-blue-300' : 'hover:bg-muted'} ${!usePeopleBank ? 'opacity-70 cursor-not-allowed' : ''}`}>
-                                        <Checkbox 
+                                        <Checkbox
                                           id={`person-${person.id}`}
                                           checked={isSelected}
                                           onCheckedChange={(checked) => {
@@ -844,7 +871,7 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
                                               };
                                               const updatedParticipants = [...participants, newParticipant];
                                               setParticipants(updatedParticipants);
-                                              
+
                                               // If toggle is off, show a message to enable it for better experience
                                               if (!usePeopleBank) {
                                                 toast.info('Youth Bank selection enabled', {
@@ -997,6 +1024,146 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
                         )}
                       />
 
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="category"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Category</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select category" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="WATER">Water Infrastructure</SelectItem>
+                                  <SelectItem value="ROAD">Road Infrastructure</SelectItem>
+                                  <SelectItem value="BUILDING">Building</SelectItem>
+                                  <SelectItem value="OTHER">Other</SelectItem>
+
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="workType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Work Type</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select work type" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="new">New Construction</SelectItem>
+                                  <SelectItem value="retrofitting">Retrofitting</SelectItem>
+                                  <SelectItem value="restoration">Restoration</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/10">
+                        <FormField
+                          control={form.control}
+                          name="dprApproved"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg">
+                              <div className="space-y-0.5">
+                                <FormLabel className="text-base">DPR Approved</FormLabel>
+                                <div className="text-xs text-muted-foreground">Detailed Project Report status</div>
+                              </div>
+                              <FormControl>
+                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="approvedDesignFollowed"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg">
+                              <div className="space-y-0.5">
+                                <FormLabel className="text-base">Design Followed</FormLabel>
+                                <div className="text-xs text-muted-foreground">Was approved design followed?</div>
+                              </div>
+                              <FormControl>
+                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={form.control}
+                        name="designChangeDetails"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Design Change Details</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                {...field}
+                                placeholder="Enter design change details if any"
+                                className="resize-none"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="sanctionBudget"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Sanction Budget (INR)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  {...field}
+                                  onChange={(e) => field.onChange(Number(e.target.value))}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="expensesIncurred"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Expenses Incurred (INR)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  {...field}
+                                  onChange={(e) => field.onChange(Number(e.target.value))}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
                       <FormField
                         control={form.control}
                         name="workDescription"
@@ -1004,12 +1171,238 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
                           <FormItem>
                             <FormLabel>Work Description</FormLabel>
                             <FormControl>
-                              <Textarea {...field} placeholder="Describe the work done" />
+                              <Textarea
+                                {...field}
+                                placeholder="Describe the work done"
+                                className="min-h-[100px]"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
+
+                      <FormField
+                        control={form.control}
+                        name="benefits"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Benefits</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                {...field}
+                                placeholder="Describe the benefits of this infrastructure"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="grid grid-cols-1 gap-6 pt-4">
+                        <h4 className="font-medium text-sm text-muted-foreground border-b pb-2">Evidence Photos</h4>
+
+                        {/* Pre-Construction */}
+                        <FormField
+                          control={form.control}
+                          name="preConstructionPhotos"
+                          render={({ field: { value, onChange, ...field } }) => (
+                            <FormItem>
+                              <FormLabel>Pre-Construction Photos</FormLabel>
+                              <FormControl>
+                                <div className="space-y-4">
+                                  <Input
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    {...field}
+                                    value=""
+                                    onChange={async (e) => {
+                                      try {
+                                        const files = Array.from(e.target.files || []);
+                                        if (files.length > 0) {
+                                          const uploadedFiles = await handleFileUpload(files, "reports/infrastructure/pre-construction");
+                                          onChange([...(value || []), ...uploadedFiles]);
+                                        }
+                                      } catch (error) {
+                                        toast.error("Failed to upload photos");
+                                        console.error(error);
+                                      }
+                                    }}
+                                  />
+                                  {value && value.length > 0 && (
+                                    <div className="grid grid-cols-3 gap-4">
+                                      {value.map((file: any, index: number) => (
+                                        <div key={index} className="relative group border rounded-md p-2">
+                                          <div className="aspect-video w-full overflow-hidden rounded-md mb-2 bg-muted border">
+                                            <img
+                                              src={file.url}
+                                              alt={file.originalName}
+                                              className="h-full w-full object-cover"
+                                            />
+                                          </div>
+                                          <div className="text-xs truncate max-w-full pb-1">{file.originalName}</div>
+                                          <div className="flex justify-end">
+                                            <Button
+                                              type="button"
+                                              variant="destructive"
+                                              size="icon"
+                                              className="h-6 w-6"
+                                              onClick={() => {
+                                                const newValue = [...value];
+                                                newValue.splice(index, 1);
+                                                onChange(newValue);
+                                              }}
+                                            >
+                                              <span className="sr-only">Remove</span>
+                                              &times;
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* During Construction */}
+                        <FormField
+                          control={form.control}
+                          name="duringConstructionPhotos"
+                          render={({ field: { value, onChange, ...field } }) => (
+                            <FormItem>
+                              <FormLabel>During Construction Photos</FormLabel>
+                              <FormControl>
+                                <div className="space-y-4">
+                                  <Input
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    {...field}
+                                    value=""
+                                    onChange={async (e) => {
+                                      try {
+                                        const files = Array.from(e.target.files || []);
+                                        if (files.length > 0) {
+                                          const uploadedFiles = await handleFileUpload(files, "reports/infrastructure/during-construction");
+                                          onChange([...(value || []), ...uploadedFiles]);
+                                        }
+                                      } catch (error) {
+                                        toast.error("Failed to upload photos");
+                                        console.error(error);
+                                      }
+                                    }}
+                                  />
+                                  {value && value.length > 0 && (
+                                    <div className="grid grid-cols-3 gap-4">
+                                      {value.map((file: any, index: number) => (
+                                        <div key={index} className="relative group border rounded-md p-2">
+                                          <div className="aspect-video w-full overflow-hidden rounded-md mb-2 bg-muted border">
+                                            <img
+                                              src={file.url}
+                                              alt={file.originalName}
+                                              className="h-full w-full object-cover"
+                                            />
+                                          </div>
+                                          <div className="text-xs truncate max-w-full pb-1">{file.originalName}</div>
+                                          <div className="flex justify-end">
+                                            <Button
+                                              type="button"
+                                              variant="destructive"
+                                              size="icon"
+                                              className="h-6 w-6"
+                                              onClick={() => {
+                                                const newValue = [...value];
+                                                newValue.splice(index, 1);
+                                                onChange(newValue);
+                                              }}
+                                            >
+                                              <span className="sr-only">Remove</span>
+                                              &times;
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Post Construction */}
+                        <FormField
+                          control={form.control}
+                          name="postConstructionPhotos"
+                          render={({ field: { value, onChange, ...field } }) => (
+                            <FormItem>
+                              <FormLabel>Post Construction Photos</FormLabel>
+                              <FormControl>
+                                <div className="space-y-4">
+                                  <Input
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    {...field}
+                                    value=""
+                                    onChange={async (e) => {
+                                      try {
+                                        const files = Array.from(e.target.files || []);
+                                        if (files.length > 0) {
+                                          const uploadedFiles = await handleFileUpload(files, "reports/infrastructure/post-construction");
+                                          onChange([...(value || []), ...uploadedFiles]);
+                                        }
+                                      } catch (error) {
+                                        toast.error("Failed to upload photos");
+                                        console.error(error);
+                                      }
+                                    }}
+                                  />
+                                  {value && value.length > 0 && (
+                                    <div className="grid grid-cols-3 gap-4">
+                                      {value.map((file: any, index: number) => (
+                                        <div key={index} className="relative group border rounded-md p-2">
+                                          <div className="aspect-video w-full overflow-hidden rounded-md mb-2 bg-muted border">
+                                            <img
+                                              src={file.url}
+                                              alt={file.originalName}
+                                              className="h-full w-full object-cover"
+                                            />
+                                          </div>
+                                          <div className="text-xs truncate max-w-full pb-1">{file.originalName}</div>
+                                          <div className="flex justify-end">
+                                            <Button
+                                              type="button"
+                                              variant="destructive"
+                                              size="icon"
+                                              className="h-6 w-6"
+                                              onClick={() => {
+                                                const newValue = [...value];
+                                                newValue.splice(index, 1);
+                                                onChange(newValue);
+                                              }}
+                                            >
+                                              <span className="sr-only">Remove</span>
+                                              &times;
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     </CardContent>
                   </Card>
                 )}

@@ -25,9 +25,9 @@ export default withAuth(
           token.role === "field_agent"
         )
 
-      if (!hasNgoRole) {
-        return NextResponse.redirect(new URL("/unauthorized", req.url))
-      }
+      // if (!hasNgoRole) {
+      //   return NextResponse.redirect(new URL("/unauthorized", req.url))
+      // }
     }
 
     // ======================================================
@@ -35,9 +35,9 @@ export default withAuth(
     // ======================================================
 
     const orgId = token.organizationId
-    if (!orgId) {
-      return NextResponse.redirect(new URL("/unauthorized", req.url))
-    }
+    // if (!orgId) {
+    //   return NextResponse.redirect(new URL("/unauthorized", req.url))
+    // }
 
     // Only check when hitting protected module pages
     const needsPeopleBank =
@@ -46,37 +46,37 @@ export default withAuth(
     const needsAssetManagement =
       pathname.startsWith("/org-dashboard/assets")
 
-    if (needsPeopleBank || needsAssetManagement) {
-      try {
-        const res = await fetch(
-          `https://mis.tanxinnovations.com"/api/org/hasAccesstoPeopleBank/${orgId}`,
-          {
-            headers: {
-              cookie: req.headers.get("cookie") || "",
-            },
-          }
-        )
+    // if (needsPeopleBank || needsAssetManagement) {
+    //   try {
+    //     const res = await fetch(
+    //       `https://mis.tanxinnovations.com"/api/org/hasAccesstoPeopleBank/${orgId}`,
+    //       {
+    //         headers: {
+    //           cookie: req.headers.get("cookie") || "",
+    //         },
+    //       }
+    //     )
 
-        if (!res.ok) {
-          return NextResponse.redirect(new URL("/unauthorized", req.url))
-        }
+    //     if (!res.ok) {
+    //       return NextResponse.redirect(new URL("/unauthorized", req.url))
+    //     }
 
-        const org = await res.json()
+    //     const org = await res.json()
 
-        // 🚫 Youth Bank page protection
-        if (needsPeopleBank && !org?.hasAccesstoPeopleBank) {
-          return NextResponse.redirect(new URL("/unauthorized", req.url))
-        }
+    //     // 🚫 Youth Bank page protection
+    //     if (needsPeopleBank && !org?.hasAccesstoPeopleBank) {
+    //       return NextResponse.redirect(new URL("/unauthorized", req.url))
+    //     }
 
-        // 🚫 Asset Management page protection
-        // if (needsAssetManagement && !org?.hasAccessToAssetManagement) {
-        //   return NextResponse.redirect(new URL("/unauthorized", req.url))
-        // }
-      } catch (error) {
-        console.error("Middleware module access error:", error)
-        return NextResponse.redirect(new URL("/unauthorized", req.url))
-      }
-    }
+    //     // 🚫 Asset Management page protection
+    //     // if (needsAssetManagement && !org?.hasAccessToAssetManagement) {
+    //     //   return NextResponse.redirect(new URL("/unauthorized", req.url))
+    //     // }
+    //   } catch (error) {
+    //     console.error("Middleware module access error:", error)
+    //     return NextResponse.redirect(new URL("/unauthorized", req.url))
+    //   }
+    // }
 
     // ✅ Allow request to continue
     return NextResponse.next()

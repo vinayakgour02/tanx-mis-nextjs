@@ -16,26 +16,31 @@ export function AppSidebar() {
 
   const user = session?.user as any
 
-  useEffect(() => {
-    if (!user?.organizationId) return
+useEffect(() => {
 
-    // 🔹 Fetch dynamic items (like Youth Bank)
-    getDynamicSidebarItems(user.organizationId).then((dynamicItems) => {
-      if (dynamicItems.length > 0) {
-        setItems((prev) => {
-          const updated = [...prev]
-          // ✅ Add Youth Bank as a separate, top-level sidebar item
-          const alreadyExists = updated.some(
-            (item) => item.title === "Youth Bank"
-          )
-          if (!alreadyExists) {
-            updated.push(...dynamicItems)
-          }
-          return updated
-        })
-      }
+
+  getDynamicSidebarItems(user.organizationId).then((dynamicItems) => {
+
+    setItems((prev) => {
+
+      const updated = [...prev]
+
+      dynamicItems.forEach((dynamicItem) => {
+        const exists = updated.some(
+          (item) => item.title === dynamicItem.title
+        )
+
+
+        if (!exists) {
+          updated.push(dynamicItem)
+        }
+      })
+
+
+      return updated
     })
-  }, [user?.organizationId])
+  })
+}, [user?.organizationId])
 
   const {
     organization,

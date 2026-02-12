@@ -5,38 +5,49 @@ import type { SidebarItem } from "./navigation-config";
 export async function getDynamicSidebarItems(
   orgId: string
 ): Promise<SidebarItem[]> {
-  if (!orgId) return [];
+
+  if (!orgId) {
+    return []
+  }
 
   try {
-    const res = await fetch(`/api/org/hasAccesstoPeopleBank/${orgId}`);
-    if (!res.ok) return [];
+    const res = await fetch(`/api/org/hasAccesstoPeopleBank/${orgId}`)
 
-    const org = await res.json();
-    const items: SidebarItem[] = [];
 
-    // ✅ Youth Bank
+    if (!res.ok) {
+      return []
+    }
+
+    const org = await res.json()
+
+    const items: SidebarItem[] = []
+
+    // Youth Bank
     if (org?.hasAccesstoPeopleBank) {
+
       items.push({
         title: "Youth Bank",
         href: "/org-dashboard/youth-bank",
         icon: UsersRound,
         requiredPermission: { resource: "reports", action: "read" },
-      });
+      })
     }
 
-    // ✅ Asset Management
+    // Asset Management
     if (org?.hasAccessToAssetManagement) {
+
       items.push({
         title: "Asset Management",
         href: "/org-dashboard/assets",
         icon: Package,
-        requiredPermission: { resource: "assets", action: "read" },
-      });
+        requiredPermission: { resource: "assets", action: "admin" },
+      })
     }
 
-    return items;
+
+    return items
   } catch (err) {
-    console.error("Error fetching org access:", err);
-    return [];
+    console.error("🔥 Error fetching org access:", err)
+    return []
   }
 }

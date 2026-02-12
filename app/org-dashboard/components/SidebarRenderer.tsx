@@ -66,25 +66,34 @@ export default function SidebarRenderer({
     .slice(0, 2)
 
   // ✅ Permission-based filtering
-  function filterVisibleItems(items: SidebarItem[]): SidebarItem[] {
+ function filterVisibleItems(items: SidebarItem[]): SidebarItem[] {
   return items
     .map((item) => {
-      const hasPermission = item.requiredPermission
+      // ✅ Skip permission for these features
+      const bypassPermission =
+        item.title === "Asset Management" ||
+        item.title === "Youth Bank"
+
+      const hasPermission = bypassPermission
+        ? true
+        : item.requiredPermission
         ? can(item.requiredPermission.resource, item.requiredPermission.action)
         : true
 
-      // ✅ If parent has permission → all children become visible automatically
+    
+
+      // ✅ Children handling
       let visibleChildren: SidebarItem[] = []
+
       if (item.children) {
         if (hasPermission) {
           visibleChildren = item.children
         } else {
-          // If parent has no permission, recursively check children
           visibleChildren = filterVisibleItems(item.children)
         }
       }
 
-      // ✅ If parent has permission OR visible children exist, keep the item
+      // ✅ Keep if allowed
       if (hasPermission || visibleChildren.length > 0) {
         return { ...item, children: visibleChildren }
       }
@@ -93,7 +102,6 @@ export default function SidebarRenderer({
     })
     .filter(Boolean) as SidebarItem[]
 }
-
 
   const visibleItems = !isLoading ? filterVisibleItems(items) : []
 

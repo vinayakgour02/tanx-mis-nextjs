@@ -49,7 +49,7 @@ export default withAuth(
     if (needsPeopleBank || needsAssetManagement) {
       try {
         const res = await fetch(
-          `${req.nextUrl.origin}/api/org/hasAccesstoPeopleBank/${orgId}`,
+          `https://mis.tanxinnovations.com"/api/org/hasAccesstoPeopleBank/${orgId}`,
           {
             headers: {
               cookie: req.headers.get("cookie") || "",

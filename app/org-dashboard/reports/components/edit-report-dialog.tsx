@@ -623,33 +623,52 @@ if (report?.infrastructureReport) {
   }, [form])
 
   useEffect(() => {
-  if (!open) {
-
-    // Reset hierarchy state
-    setSelectedStateId('');
-    setSelectedDistrictId('');
-    setSelectedBlockId('');
-    setSelectedVillageId('');
-
-    // Reset location init flag
-    locationInitialized.current = false;
-
-    // Reset related form values
-    form.setValue("location", "");
-    form.setValue("interventionAreaId", "");
-
-    // Reset other states
-    setParticipants([]);
-    setBenefits([]);
-
-    participantsInitializedRef.current = false;
-    initialParticipantCountRef.current = 0;
-
-    form.reset();
+  // Wait for all required data to be loaded
+  if (
+    locationInitialized.current ||
+    !report ||
+    !interventionAreas?.length ||
+    !report.interventionArea ||
+    isLoadingInterventionAreas
+  ) {
+    return;
   }
-}, [open]);
 
+  const area = report.interventionArea;
 
+  // Extract IDs with fallbacks
+  const stateId = area.state?.id || area.stateId || "";
+  const districtId = area.district?.id || area.districtId || "";
+  const blockId = area.blockName?.id || area.blockId || "";
+  const villageId = area.villageName?.id || area.villageId || "";
+
+  // Set hierarchy state
+  setSelectedStateId(stateId);
+  setSelectedDistrictId(districtId);
+  setSelectedBlockId(blockId);
+  setSelectedVillageId(villageId);
+
+  // Build location text
+  const parts = [
+    area.state?.name || area.stateName,
+    area.district?.name || area.districtName,
+    area.blockName?.name || area.blockNameName,
+    area.villageName?.name || area.villageNameName,
+  ].filter(Boolean);
+
+  const location = parts.join(" - ");
+
+  // Set form values
+  form.setValue("location", location);
+  form.setValue("interventionAreaId", report.interventionAreaId);
+  
+  // Also ensure levelofActivity is set correctly
+  if (report.levelofActivity) {
+    form.setValue("levelofActivity", report.levelofActivity);
+  }
+
+  locationInitialized.current = true;
+}, [report, interventionAreas, isLoadingInterventionAreas, form]);
 
 
   const handleFileUpload = async (files: File[], folder: string): Promise<UploadedFile[]> => {
@@ -720,21 +739,26 @@ if (report?.infrastructureReport) {
   }, [reportingMonth])
 
 useEffect(() => {
+  // Wait for all required data to be loaded
   if (
     locationInitialized.current ||
     !report ||
     !interventionAreas?.length ||
-    !report.interventionArea
-  )
+    !report.interventionArea ||
+    isLoadingInterventionAreas
+  ) {
     return;
+  }
 
   const area = report.interventionArea;
 
-  const stateId = area.state?.id || "";
-  const districtId = area.district?.id || "";
-  const blockId = area.blockName?.id || "";
-  const villageId = area.villageName?.id || "";
+  // Extract IDs with fallbacks
+  const stateId = area.state?.id || area.stateId || "";
+  const districtId = area.district?.id || area.districtId || "";
+  const blockId = area.blockName?.id || area.blockId || "";
+  const villageId = area.villageName?.id || area.villageId || "";
 
+  // Set hierarchy state
   setSelectedStateId(stateId);
   setSelectedDistrictId(districtId);
   setSelectedBlockId(blockId);
@@ -742,21 +766,25 @@ useEffect(() => {
 
   // Build location text
   const parts = [
-    area.state?.name,
-    area.district?.name,
-    area.blockName?.name,
-    area.villageName?.name,
+    area.state?.name || area.stateName,
+    area.district?.name || area.districtName,
+    area.blockName?.name || area.blockNameName,
+    area.villageName?.name || area.villageNameName,
   ].filter(Boolean);
 
   const location = parts.join(" - ");
 
+  // Set form values
   form.setValue("location", location);
   form.setValue("interventionAreaId", report.interventionAreaId);
+  
+  // Also ensure levelofActivity is set correctly
+  if (report.levelofActivity) {
+    form.setValue("levelofActivity", report.levelofActivity);
+  }
 
   locationInitialized.current = true;
-
-}, [report, interventionAreas]);
-
+}, [report, interventionAreas, isLoadingInterventionAreas, form]);
 
   return (
     <Dialog key={reportId}

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
+import { useWatch } from "react-hook-form"
+
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Loader2, MapPin, Edit2, Users } from "lucide-react"
@@ -62,8 +64,14 @@ const formSchema = z.object({
   reportingMonth: z.string().min(1, "Month is required"),
   reportingQuarter: z.string().min(1, "Quarter is required"),
   reportingYear: z.string().min(1, "Year is required"),
+
+  levelofActivity: z.enum(["state", "district", "blockName", "villageName"], {
+    required_error: "Level of activity is required",
+  }),
+  interventionAreaId: z.string().min(1, "Intervention area is required"),
   location: z.string().optional(),
   gpsCoordinates: z.string().optional(),
+
   unitReported: z.number().min(0, "Unit reported must be positive"),
   numberOfPeople: z.number().optional(),
   hasLeverage: z.boolean(),
@@ -128,7 +136,11 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
   const participantsInitializedRef = useRef(false);
   const initialParticipantCountRef = useRef(0);
 
-
+  // Hierarchical location selection state
+  const [selectedStateId, setSelectedStateId] = useState<string>('')
+  const [selectedDistrictId, setSelectedDistrictId] = useState<string>('')
+  const [selectedBlockId, setSelectedBlockId] = useState<string>('')
+  const [selectedVillageId, setSelectedVillageId] = useState<string>('')
 
   // Organization and PeopleBank state
   const [organization, setOrganization] = useState<any>(null)
@@ -142,6 +154,8 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
       reportingMonth: "",
       reportingQuarter: "",
       reportingYear: "",
+      levelofActivity: "state", // Default
+      interventionAreaId: "",
       location: "",
       gpsCoordinates: "",
       unitReported: 0,
@@ -180,6 +194,8 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
 
   // Watch the numberOfPeople field for changes
   const numberOfPeople = form.watch("numberOfPeople");
+  const levelOfActivity = useWatch({ control: form.control, name: "levelofActivity" });
+
 
   // Fetch organization data
   const { data: orgData } = useQuery({
@@ -200,6 +216,9 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
       setOrganization(orgData)
     }
   }, [orgData])
+
+
+
 
   // Fetch PeopleBank data for organizations with access
   const { data: peopleBankData, isLoading: isLoadingPeopleBank } = useQuery({
@@ -240,6 +259,101 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
     }
   }, [open, refetch]);
 
+  const { data: interventionAreas, isLoading: isLoadingInterventionAreas } = useQuery({
+    queryKey: ["interventionAreas", report?.projectId],
+    queryFn: async () => {
+      if (!report?.projectId) return []
+      const response = await fetch(`/api/projects/${report.projectId}/intervention-areas`)
+      if (!response.ok) throw new Error("Failed to fetch intervention areas")
+      return response.json()
+    },
+    enabled: !!report?.projectId,
+  })
+
+  const getUniqueStates = () => {
+    if (!interventionAreas || interventionAreas.length === 0) return []
+    const uniqueStates = new Map<string, { id: string; name: string }>()
+    interventionAreas.forEach((area: any) => {
+      const stateId = area.stateId || area.state?.id
+      const stateName = area.state?.name || area.state
+      if (stateId && stateName && !uniqueStates.has(stateId)) {
+        uniqueStates.set(stateId, { id: stateId, name: stateName })
+      }
+    })
+    return Array.from(uniqueStates.values())
+  }
+
+
+  const getUniqueDistricts = (selectedStateId: string) => {
+    if (!interventionAreas || !selectedStateId) return []
+    const uniqueDistricts = new Map<string, { id: string; name: string }>()
+    interventionAreas
+      .filter((area: any) => (area.stateId || area.state?.id) === selectedStateId)
+      .forEach((area: any) => {
+        const districtId = area.districtId || area.district?.id
+        const districtName = area.district?.name || area.district
+        if (districtId && districtName && !uniqueDistricts.has(districtId)) {
+          uniqueDistricts.set(districtId, { id: districtId, name: districtName })
+        }
+      })
+    return Array.from(uniqueDistricts.values())
+  }
+
+  const getUniqueBlocks = (selectedStateId: string, selectedDistrictId: string) => {
+    if (!interventionAreas || !selectedStateId || !selectedDistrictId) return []
+    const uniqueBlocks = new Map<string, { id: string; name: string }>()
+    interventionAreas
+      .filter((area: any) =>
+        (area.stateId || area.state?.id) === selectedStateId &&
+        (area.districtId || area.district?.id) === selectedDistrictId
+      )
+      .forEach((area: any) => {
+        const blockId = area.blockId || area.blockName?.id
+        const blockName = area.blockName?.name || area.blockName
+        if (blockId && blockName && !uniqueBlocks.has(blockId)) {
+          uniqueBlocks.set(blockId, { id: blockId, name: blockName })
+        }
+      })
+    return Array.from(uniqueBlocks.values())
+  }
+
+  const getUniqueVillages = (selectedStateId: string, selectedDistrictId: string, selectedBlockId: string) => {
+    if (!interventionAreas || !selectedStateId || !selectedDistrictId || !selectedBlockId) return []
+    const uniqueVillages = new Map<string, { id: string; name: string }>()
+    interventionAreas
+      .filter((area: any) =>
+        (area.stateId || area.state?.id) === selectedStateId &&
+        (area.districtId || area.district?.id) === selectedDistrictId &&
+        (area.blockId || area.blockName?.id) === selectedBlockId
+      )
+      .forEach((area: any) => {
+        const villageId = area.villageId || area.villageName?.id
+        const villageName = area.villageName?.name || area.villageName
+        if (villageId && villageName && !uniqueVillages.has(villageId)) {
+          uniqueVillages.set(villageId, { id: villageId, name: villageName })
+        }
+      })
+    return Array.from(uniqueVillages.values())
+  }
+
+  const findMatchingInterventionArea = (level: string, stateId?: string, districtId?: string, blockId?: string, villageId?: string) => {
+    if (!interventionAreas) return null
+    return interventionAreas.find((area: any) => {
+      const aStateId = area.stateId || area.state?.id
+      const aDistrictId = area.districtId || area.district?.id
+      const aBlockId = area.blockId || area.blockName?.id
+      const aVillageId = area.villageId || area.villageName?.id
+
+      switch (level) {
+        case "state": return aStateId === stateId
+        case "district": return aStateId === stateId && aDistrictId === districtId
+        case "blockName": return aStateId === stateId && aDistrictId === districtId && aBlockId === blockId
+        case "villageName": return aStateId === stateId && aDistrictId === districtId && aBlockId === blockId && aVillageId === villageId
+        default: return false
+      }
+    })
+  }
+
 
   // Populate form with report data when loaded
   useEffect(() => {
@@ -260,6 +374,8 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
         leverageCommunity: report.leverageCommunity || undefined,
         evidenceFiles: [],
         reportFiles: [],
+        levelofActivity: report.levelofActivity || "state",
+        interventionAreaId: report.interventionAreaId || "",
         // Training fields
         trainingDateFrom: report.trainingReport?.dateFrom ? new Date(report.trainingReport.dateFrom) : undefined,
         trainingDateTo: report.trainingReport?.dateTo ? new Date(report.trainingReport.dateTo) : undefined,
@@ -289,6 +405,10 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
         femaleMembers: report.householdReport?.femaleMembers || undefined,
         totalMembers: report.householdReport?.totalMembers || undefined,
       })
+      form.setValue("reportingMonth", report.reportingMonth)
+      form.setValue("reportingQuarter", report.reportingQuarter)
+
+
 
       // Set participants if it's a training report
       if (report.trainingReport?.participants) {
@@ -331,6 +451,25 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
       }
     }
   }, [report, form])
+  useEffect(() => {
+    if (!report?.interventionArea) return;
+
+    const area = report.interventionArea;
+
+    const stateId = area.stateId || area.state?.id;
+    const districtId = area.districtId || area.district?.id;
+    const blockId = area.blockId || area.blockName?.id;
+    const villageId = area.villageId || area.villageName?.id;
+
+    if (stateId) setSelectedStateId(stateId);
+    if (districtId) setSelectedDistrictId(districtId);
+    if (blockId) setSelectedBlockId(blockId);
+    if (villageId) setSelectedVillageId(villageId);
+
+  }, [report]);
+
+  console.log("this is report:", report)
+
 
   useEffect(() => {
     if (report?.type !== "Training") return;
@@ -459,14 +598,6 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
     }
   }
 
-  const getAvailableMonths = () => {
-    const months = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
-    ]
-    return months
-  }
-
   const getQuarterFromMonth = (monthName: string) => {
     const monthIndex = [
       "January", "February", "March", "April", "May", "June",
@@ -492,15 +623,15 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
   }, [form])
 
   // Reset state when dialog closes
-useEffect(() => {
-  if (!open) {
-    setOrganization(null);
-    setPeopleBank([]);
-    setUsePeopleBank(false);
-    participantsInitializedRef.current = false;
-    initialParticipantCountRef.current = 0;
-  }
-}, [open]);
+  useEffect(() => {
+    if (!open) {
+      setOrganization(null);
+      setPeopleBank([]);
+      setUsePeopleBank(false);
+      participantsInitializedRef.current = false;
+      initialParticipantCountRef.current = 0;
+    }
+  }, [open]);
 
 
 
@@ -528,6 +659,44 @@ useEffect(() => {
     return uploadedFiles;
   };
 
+  const getAvailableMonths = () => {
+    const now = new Date()
+    const currentMonth = now.getMonth()
+    const currentDay = now.getDate()
+
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ]
+
+    if (currentDay < 7) {
+      const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1
+
+      return [
+        months[previousMonth],
+        months[currentMonth],
+      ]
+    }
+
+    return [months[currentMonth]]
+  }
+
+  const reportingMonth = useWatch({
+    control: form.control,
+    name: "reportingMonth",
+  })
+
+  useEffect(() => {
+    if (!reportingMonth) return
+
+    const quarter = getQuarterFromMonth(reportingMonth)
+
+    if (form.getValues("reportingQuarter") !== quarter) {
+      form.setValue("reportingQuarter", quarter)
+    }
+  }, [reportingMonth])
+
+  console.log(report)
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -567,47 +736,6 @@ useEffect(() => {
                   </CardHeader>
                 </Card>
 
-                {/* Activity Date */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Date of Activity</CardTitle>
-                  </CardHeader>
-                  <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="unitReported"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Units Reported</FormLabel>
-                          <div className="flex items-center space-x-2">
-                            <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
-                            <span className="text-sm text-muted-foreground whitespace-nowrap">
-                              {report?.activity?.unitOfMeasure || "units"}
-                            </span>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="numberOfPeople"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Number of People (Optional)</FormLabel>
-                          <Input
-                            type="number"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                            placeholder="Enter number of people"
-                          />
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </CardContent>
-                </Card>
 
                 {/* Reporting Period */}
                 <Card>
@@ -618,15 +746,22 @@ useEffect(() => {
                     <FormField
                       control={form.control}
                       name="reportingMonth"
+                      disabled
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Reporting Month</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                            disabled
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select month" />
                               </SelectTrigger>
                             </FormControl>
+
                             <SelectContent>
                               {getAvailableMonths().map((month) => (
                                 <SelectItem key={month} value={month}>
@@ -635,6 +770,7 @@ useEffect(() => {
                               ))}
                             </SelectContent>
                           </Select>
+
                           <FormMessage />
                         </FormItem>
                       )}
@@ -665,7 +801,7 @@ useEffect(() => {
                         <FormItem>
                           <FormLabel>Reporting Year</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="Enter reporting year" />
+                            <Input {...field} placeholder="Enter reporting year" disabled />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -680,6 +816,164 @@ useEffect(() => {
                     <CardTitle className="text-lg">Location Details</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="levelofActivity"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel>Level of Activity *</FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={(val) => {
+                                field.onChange(val);
+                                form.setValue("interventionAreaId", "")
+                                form.setValue("location", "")
+                              }}
+                               value={field.value}
+                              className="flex flex-row gap-4 space-y-2"
+                            >
+                              <div className="flex items-center space-x-2"><RadioGroupItem value="state" id="state" /><Label htmlFor="state">State Level</Label></div>
+                              <div className="flex items-center space-x-2"><RadioGroupItem value="district" id="district" /><Label htmlFor="district">District Level</Label></div>
+                              <div className="flex items-center space-x-2"><RadioGroupItem value="blockName" id="blockName" /><Label htmlFor="blockName">Block Level</Label></div>
+                              <div className="flex items-center space-x-2"><RadioGroupItem value="villageName" id="villageName" /><Label htmlFor="villageName">Village Level</Label></div>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Hierarchical Location Selection */}
+                    {levelOfActivity && (
+                      <div className="space-y-4">
+                        {/* State Selection */}
+                        <FormItem>
+                          <FormLabel>Select State *</FormLabel>
+                          <Select
+                            value={selectedStateId}
+                            onValueChange={(value) => {
+                              setSelectedStateId(value)
+                              // Clear downstream
+                              setSelectedDistrictId('')
+                              setSelectedBlockId('')
+                              setSelectedVillageId('')
+
+                              const selectedState = getUniqueStates().find(state => state.id === value)
+                              if (selectedState && levelOfActivity === "state") {
+                                const matchingArea = findMatchingInterventionArea("state", value)
+                                if (matchingArea) {
+                                  form.setValue("interventionAreaId", matchingArea.id)
+                                  form.setValue("location", selectedState.name)
+                                }
+                              }
+                            }}
+                          >
+                            <SelectTrigger><SelectValue placeholder="Select state" /></SelectTrigger>
+                            <SelectContent>
+                              {isLoadingInterventionAreas ? <SelectItem value="loading" disabled>Loading...</SelectItem> :
+                                getUniqueStates().map((state) => <SelectItem key={state.id} value={state.id}>{state.name}</SelectItem>)
+                              }
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+
+                        {/* District Selection */}
+                        {["district", "blockName", "villageName"].includes(levelOfActivity) && selectedStateId && (
+                          <FormItem>
+                            <FormLabel>Select District *</FormLabel>
+                            <Select
+                              value={selectedDistrictId}
+                              onValueChange={(value) => {
+                                setSelectedDistrictId(value)
+                                setSelectedBlockId('')
+                                setSelectedVillageId('')
+
+                                const selectedDistrict = getUniqueDistricts(selectedStateId).find(district => district.id === value)
+                                if (selectedDistrict && levelOfActivity === "district") {
+                                  const matchingArea = findMatchingInterventionArea("district", selectedStateId, value)
+                                  if (matchingArea) {
+                                    form.setValue("interventionAreaId", matchingArea.id)
+                                    const stateName = getUniqueStates().find(s => s.id === selectedStateId)?.name
+                                    form.setValue("location", `${stateName} - ${selectedDistrict.name}`)
+                                  }
+                                }
+                              }}
+                            >
+                              <SelectTrigger><SelectValue placeholder="Select district" /></SelectTrigger>
+                              <SelectContent>
+                                {getUniqueDistricts(selectedStateId).map((district) => (
+                                  <SelectItem key={district.id} value={district.id}>{district.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormItem>
+                        )}
+
+                        {/* Block Selection */}
+                        {["blockName", "villageName"].includes(levelOfActivity) && selectedStateId && selectedDistrictId && (
+                          <FormItem>
+                            <FormLabel>Select Block *</FormLabel>
+                            <Select
+                              value={selectedBlockId}
+                              onValueChange={(value) => {
+                                setSelectedBlockId(value)
+                                setSelectedVillageId('')
+
+                                const selectedBlock = getUniqueBlocks(selectedStateId, selectedDistrictId).find(block => block.id === value)
+                                if (selectedBlock && levelOfActivity === "blockName") {
+                                  const matchingArea = findMatchingInterventionArea("blockName", selectedStateId, selectedDistrictId, value)
+                                  if (matchingArea) {
+                                    form.setValue("interventionAreaId", matchingArea.id)
+                                    const stateName = getUniqueStates().find(s => s.id === selectedStateId)?.name
+                                    const districtName = getUniqueDistricts(selectedStateId).find(d => d.id === selectedDistrictId)?.name
+                                    form.setValue("location", `${stateName} - ${districtName} - ${selectedBlock.name}`)
+                                  }
+                                }
+                              }}
+                            >
+                              <SelectTrigger><SelectValue placeholder="Select block" /></SelectTrigger>
+                              <SelectContent>
+                                {getUniqueBlocks(selectedStateId, selectedDistrictId).map((block) => (
+                                  <SelectItem key={block.id} value={block.id}>{block.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormItem>
+                        )}
+
+                        {/* Village Selection */}
+                        {levelOfActivity === "villageName" && selectedStateId && selectedDistrictId && selectedBlockId && (
+                          <FormItem>
+                            <FormLabel>Select Village *</FormLabel>
+                            <Select
+                              value={selectedVillageId}
+                              onValueChange={(value) => {
+                                setSelectedVillageId(value)
+                                const selectedVillage = getUniqueVillages(selectedStateId, selectedDistrictId, selectedBlockId).find(v => v.id === value)
+                                if (selectedVillage) {
+                                  const matchingArea = findMatchingInterventionArea("villageName", selectedStateId, selectedDistrictId, selectedBlockId, value)
+                                  if (matchingArea) {
+                                    form.setValue("interventionAreaId", matchingArea.id)
+                                    const stateName = getUniqueStates().find(s => s.id === selectedStateId)?.name
+                                    const districtName = getUniqueDistricts(selectedStateId).find(d => d.id === selectedDistrictId)?.name
+                                    const blockName = getUniqueBlocks(selectedStateId, selectedDistrictId).find(b => b.id === selectedBlockId)?.name
+                                    form.setValue("location", `${stateName} - ${districtName} - ${blockName} - ${selectedVillage.name}`)
+                                  }
+                                }
+                              }}
+                            >
+                              <SelectTrigger><SelectValue placeholder="Select village" /></SelectTrigger>
+                              <SelectContent>
+                                {getUniqueVillages(selectedStateId, selectedDistrictId, selectedBlockId).map((village) => (
+                                  <SelectItem key={village.id} value={village.id}>{village.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormItem>
+                        )}
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
@@ -692,7 +986,6 @@ useEffect(() => {
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={form.control}
                         name="gpsCoordinates"
@@ -700,7 +993,7 @@ useEffect(() => {
                           <FormItem>
                             <FormLabel>GPS Coordinates</FormLabel>
                             <div className="flex space-x-2">
-                              <Input {...field} placeholder="Format: lat,long (e.g., 12.9716,77.5946)" />
+                              <Input {...field} placeholder="Format: lat,long" />
                               <Button
                                 type="button"
                                 variant="outline"
@@ -711,9 +1004,7 @@ useEffect(() => {
                                       (position) => {
                                         field.onChange(`${position.coords.latitude},${position.coords.longitude}`)
                                       },
-                                      (error) => {
-                                        console.error("Error getting location:", error)
-                                      },
+                                      (error) => console.error("Error getting location:", error)
                                     )
                                   }
                                 }}
@@ -728,7 +1019,6 @@ useEffect(() => {
                     </div>
                   </CardContent>
                 </Card>
-
                 {/* Units and People */}
                 <Card>
                   <CardHeader>
@@ -1108,7 +1398,9 @@ useEffect(() => {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Category</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
+                              <Select onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
                                 <FormControl>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select category" />
@@ -1133,7 +1425,8 @@ useEffect(() => {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Work Type</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
+                              <Select onValueChange={field.onChange}
+                                defaultValue={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select work type" />

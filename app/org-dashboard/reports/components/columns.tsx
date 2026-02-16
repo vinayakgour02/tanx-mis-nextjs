@@ -2,22 +2,14 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { ViewReportDialog } from "./view-report-dialog"
-import { EditReportDialog } from "./edit-report-dialog"
 import { DeleteReportDialog } from "./delete-report-dialog"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal } from "lucide-react"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 export type Report = {
   id: string
   type: string
   status: string
+  levelofActivity: string 
   reportingDate: Date
   project?: { name: string } | null
   program?: { name: string } | null
@@ -35,7 +27,57 @@ export type Report = {
   createdAt: Date
 }
 
-export const createColumns = (onReportUpdated?: () => void, onReportDeleted?: () => void): ColumnDef<Report>[] => [
+const getLocationByLevel = (
+  area: Report["interventionArea"],
+  level?: string
+) => {
+  if (!area) return "-"
+
+  const map: Record<string, (string | undefined)[]> = {
+    state: [
+      area.state?.name,
+    ],
+
+    district: [
+      area.district?.name,
+      area.state?.name,
+    ],
+
+    blockName: [
+      area.blockName?.name,
+      area.district?.name,
+      area.state?.name,
+    ],
+
+    gramPanchayat: [
+      area.gramPanchayat?.name,
+      area.blockName?.name,
+      area.district?.name,
+      area.state?.name,
+    ],
+
+    villageName: [
+      area.villageName?.name,
+      area.gramPanchayat?.name,
+      area.blockName?.name,
+      area.district?.name,
+      area.state?.name,
+    ],
+  }
+
+  const parts = map[level ?? ""] || [
+    area.villageName?.name,
+    area.gramPanchayat?.name,
+    area.blockName?.name,
+    area.district?.name,
+    area.state?.name,
+  ]
+
+  return parts.filter(Boolean).join(", ") || "-"
+}
+
+
+export const createColumns = (onEdit: (id: string) => void, onReportUpdated?: () => void, onReportDeleted?: () => void): ColumnDef<Report>[] => [
   {
     accessorKey: "type",
     header: "Type",
@@ -52,11 +94,11 @@ export const createColumns = (onReportUpdated?: () => void, onReportDeleted?: ()
       const status = row.getValue("status") as string
       return (
         <Badge variant={
-            (status === "APPROVED" ? "success" :
+          (status === "APPROVED" ? "success" :
             status === "DRAFT" ? "default" :
-            status === "REJECTED" ? "warning" :
-            "secondary") as any
-          }>
+              status === "REJECTED" ? "warning" :
+                "secondary") as any
+        }>
           {status.replace("_", " ")}
         </Badge>
       )
@@ -73,23 +115,15 @@ export const createColumns = (onReportUpdated?: () => void, onReportDeleted?: ()
     cell: ({ row }) => row.original.program?.name || "-",
   },
   {
-    id: "location",
-    header: "Location",
-    cell: ({ row }) => {
-      const area = row.original.interventionArea
-      if (!area) return "-"
-      
-      const locationParts = [
-        area.villageName?.name,
-        area.gramPanchayat?.name,
-        area.blockName?.name,
-        area.district?.name,
-        area.state?.name
-      ].filter(Boolean)
-      
-      return locationParts.length > 0 ? locationParts.join(", ") : "-"
-    },
+  id: "location",
+  header: "Location",
+  cell: ({ row }) => {
+    const area = row.original.interventionArea
+    const level = row.original.levelofActivity
+
+    return getLocationByLevel(area, level)
   },
+},
   {
     accessorKey: "creator",
     header: "Created By",
@@ -110,15 +144,21 @@ export const createColumns = (onReportUpdated?: () => void, onReportDeleted?: ()
     header: "Actions",
     cell: ({ row }) => {
       const report = row.original
-      
+
       return (
         <div className="flex items-center gap-2">
           <ViewReportDialog reportId={report.id} />
-          <EditReportDialog 
-            reportId={report.id} 
-            onReportUpdated={onReportUpdated}
-          />
-          <DeleteReportDialog 
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onEdit(report.id)}
+          >
+            Edit
+          </Button>
+
+
+
+          <DeleteReportDialog
             reportId={report.id}
             reportType={report.type}
             onReportDeleted={onReportDeleted}
@@ -128,5 +168,3 @@ export const createColumns = (onReportUpdated?: () => void, onReportDeleted?: ()
     },
   },
 ]
-
-export const columns = createColumns() 

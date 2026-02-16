@@ -123,18 +123,21 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface EditReportDialogProps {
-  reportId: string;
-  onReportUpdated?: () => void;
+  reportId: string
+  open: boolean
+  onReportUpdated?: () => void
+  onClose: () => void
 }
 
-export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialogProps) {
-  const [open, setOpen] = useState(false)
+export function EditReportDialog({ reportId, open, onReportUpdated, onClose }: EditReportDialogProps) {
   const [participants, setParticipants] = useState<TrainingParticipant[]>([])
   const [benefits, setBenefits] = useState<Benefit[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const participantsInitializedRef = useRef(false);
   const initialParticipantCountRef = useRef(0);
+  const locationInitialized = useRef(false);
+
 
   // Hierarchical location selection state
   const [selectedStateId, setSelectedStateId] = useState<string>('')
@@ -241,7 +244,7 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
   }, [peopleBankData])
 
   // Fetch report details
-  const { data: report, refetch, isLoading: isLoadingReport } = useQuery({
+  const { data: report, isLoading: isLoadingReport } = useQuery({
     queryKey: ["report-edit", reportId],
     queryFn: async () => {
       const response = await fetch(`/api/reports/${reportId}`)
@@ -251,13 +254,9 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
       return response.json()
     },
     enabled: open,
-  })
-
-  useEffect(() => {
-    if (open) {
-      refetch(); // force reload when dialog opens
-    }
-  }, [open, refetch]);
+    staleTime: 0,
+    gcTime: 0,
+  });
 
   const { data: interventionAreas, isLoading: isLoadingInterventionAreas } = useQuery({
     queryKey: ["interventionAreas", report?.projectId],
@@ -366,7 +365,11 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
         location: report.landscape || "",
         gpsCoordinates: report.gpsCoordinates || "",
         unitReported: report.unitReported || 0,
-        numberOfPeople: report.numberOfPeople || undefined,
+        numberOfPeople:
+          report.numberOfPeople !== null
+            ? report.numberOfPeople
+            : undefined,
+
         hasLeverage: report.hasLeverage || false,
         leverageSources: report.leverageSources ? report.leverageSources.split(", ") : [],
         leverageGovt: report.leverageGovt || undefined,
@@ -379,8 +382,7 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
         // Training fields
         trainingDateFrom: report.trainingReport?.dateFrom ? new Date(report.trainingReport.dateFrom) : undefined,
         trainingDateTo: report.trainingReport?.dateTo ? new Date(report.trainingReport.dateTo) : undefined,
-        // Infrastructure fields
-        infrastructureName: report.infrastructureReport?.infrastructureName || undefined,
+        infrastructureName: report.infrastructureReport?.infrastructureName || "",
         category: report.infrastructureReport?.category || undefined,
         workType: report.infrastructureReport?.workType || undefined,
         dprApproved: report.infrastructureReport?.dprApproved || false,
@@ -451,22 +453,20 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
       }
     }
   }, [report, form])
-  useEffect(() => {
-    if (!report?.interventionArea) return;
 
-    const area = report.interventionArea;
+if (report?.infrastructureReport) {
+  setTimeout(() => {
+    form.setValue(
+      "category",
+      report.infrastructureReport.category || ""
+    );
 
-    const stateId = area.stateId || area.state?.id;
-    const districtId = area.districtId || area.district?.id;
-    const blockId = area.blockId || area.blockName?.id;
-    const villageId = area.villageId || area.villageName?.id;
-
-    if (stateId) setSelectedStateId(stateId);
-    if (districtId) setSelectedDistrictId(districtId);
-    if (blockId) setSelectedBlockId(blockId);
-    if (villageId) setSelectedVillageId(villageId);
-
-  }, [report]);
+    form.setValue(
+      "workType",
+      report.infrastructureReport.workType || ""
+    );
+  }, 0);
+}
 
   console.log("this is report:", report)
 
@@ -582,7 +582,7 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
       }
 
       toast.success("Report updated successfully!", { description })
-      setOpen(false)
+
 
       if (onReportUpdated) {
         onReportUpdated()
@@ -622,16 +622,33 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
     return () => subscription.unsubscribe()
   }, [form])
 
-  // Reset state when dialog closes
   useEffect(() => {
-    if (!open) {
-      setOrganization(null);
-      setPeopleBank([]);
-      setUsePeopleBank(false);
-      participantsInitializedRef.current = false;
-      initialParticipantCountRef.current = 0;
-    }
-  }, [open]);
+  if (!open) {
+
+    // Reset hierarchy state
+    setSelectedStateId('');
+    setSelectedDistrictId('');
+    setSelectedBlockId('');
+    setSelectedVillageId('');
+
+    // Reset location init flag
+    locationInitialized.current = false;
+
+    // Reset related form values
+    form.setValue("location", "");
+    form.setValue("interventionAreaId", "");
+
+    // Reset other states
+    setParticipants([]);
+    setBenefits([]);
+
+    participantsInitializedRef.current = false;
+    initialParticipantCountRef.current = 0;
+
+    form.reset();
+  }
+}, [open]);
+
 
 
 
@@ -660,26 +677,32 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
   };
 
   const getAvailableMonths = () => {
-    const now = new Date()
-    const currentMonth = now.getMonth()
-    const currentDay = now.getDate()
-
     const months = [
       "January", "February", "March", "April", "May", "June",
       "July", "August", "September", "October", "November", "December"
-    ]
+    ];
+
+    // If editing existing report → allow its month
+    if (report?.reportingMonth) {
+      return months;
+    }
+
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentDay = now.getDate();
 
     if (currentDay < 7) {
-      const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1
+      const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
 
       return [
         months[previousMonth],
         months[currentMonth],
-      ]
+      ];
     }
 
-    return [months[currentMonth]]
-  }
+    return [months[currentMonth]];
+  };
+
 
   const reportingMonth = useWatch({
     control: form.control,
@@ -696,10 +719,51 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
     }
   }, [reportingMonth])
 
-  console.log(report)
+useEffect(() => {
+  if (
+    locationInitialized.current ||
+    !report ||
+    !interventionAreas?.length ||
+    !report.interventionArea
+  )
+    return;
+
+  const area = report.interventionArea;
+
+  const stateId = area.state?.id || "";
+  const districtId = area.district?.id || "";
+  const blockId = area.blockName?.id || "";
+  const villageId = area.villageName?.id || "";
+
+  setSelectedStateId(stateId);
+  setSelectedDistrictId(districtId);
+  setSelectedBlockId(blockId);
+  setSelectedVillageId(villageId);
+
+  // Build location text
+  const parts = [
+    area.state?.name,
+    area.district?.name,
+    area.blockName?.name,
+    area.villageName?.name,
+  ].filter(Boolean);
+
+  const location = parts.join(" - ");
+
+  form.setValue("location", location);
+  form.setValue("interventionAreaId", report.interventionAreaId);
+
+  locationInitialized.current = true;
+
+}, [report, interventionAreas]);
+
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog key={reportId}
+      open={open}
+      onOpenChange={(v) => {
+        if (!v) onClose()
+      }}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Edit2 className="h-4 w-4" />
@@ -746,16 +810,15 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
                     <FormField
                       control={form.control}
                       name="reportingMonth"
-                      disabled
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Reporting Month</FormLabel>
 
                           <Select
-                            onValueChange={field.onChange}
                             value={field.value}
-                            disabled
+                            onValueChange={() => { }}
                           >
+
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select month" />
@@ -829,7 +892,7 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
                                 form.setValue("interventionAreaId", "")
                                 form.setValue("location", "")
                               }}
-                               value={field.value}
+                              value={field.value}
                               className="flex flex-row gap-4 space-y-2"
                             >
                               <div className="flex items-center space-x-2"><RadioGroupItem value="state" id="state" /><Label htmlFor="state">State Level</Label></div>
@@ -1399,7 +1462,7 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
                             <FormItem>
                               <FormLabel>Category</FormLabel>
                               <Select onValueChange={field.onChange}
-                                defaultValue={field.value}
+                                value={field.value}
                               >
                                 <FormControl>
                                   <SelectTrigger>
@@ -1426,7 +1489,7 @@ export function EditReportDialog({ reportId, onReportUpdated }: EditReportDialog
                             <FormItem>
                               <FormLabel>Work Type</FormLabel>
                               <Select onValueChange={field.onChange}
-                                defaultValue={field.value}>
+                                value={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select work type" />

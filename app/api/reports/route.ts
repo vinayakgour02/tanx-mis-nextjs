@@ -35,6 +35,7 @@ export async function GET(request: Request) {
             code: true
           }
         },
+        
         activity: {
           select: {
             name: true,

@@ -10,12 +10,15 @@ import { MISLoading } from "@/components/loader"
 import { CreateReportDialog } from "./components/create-report-dialog"
 import { usePermissions } from "@/hooks/use-permissions"
 import Link from "next/link"
+import { EditReportDialog } from "./components/edit-report-dialog"
 
 export default function ReportsPage() {
   const [reports, setReports] = useState<Report[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [editingId, setEditingId] = useState<string | null>(null);
+
   const [error, setError] = useState<string | null>(null)
-   const { isLoading: permLoading, canRead, canCreate, canUpdate, canDelete } = usePermissions()
+  const { isLoading: permLoading, canRead, canCreate, canUpdate, canDelete } = usePermissions()
 
 
   const fetchReports = useCallback(async () => {
@@ -39,22 +42,22 @@ export default function ReportsPage() {
   }, [])
 
   const handleReportCreated = useCallback(() => {
-    // Refresh the reports list when a new report is created
     fetchReports()
   }, [fetchReports])
 
   const handleReportUpdated = useCallback(() => {
-    // Refresh the reports list when a report is updated
     fetchReports()
   }, [fetchReports])
 
   const handleReportDeleted = useCallback(() => {
-    // Refresh the reports list when a report is deleted
     fetchReports()
   }, [fetchReports])
 
-  // Create columns with callback functions
-  const columns = createColumns(handleReportUpdated, handleReportDeleted)
+  const columns = createColumns(
+    setEditingId,
+    handleReportUpdated,
+    handleReportDeleted
+  );
 
   useEffect(() => {
     fetchReports()
@@ -74,7 +77,6 @@ export default function ReportsPage() {
       </Alert>
     )
   }
-
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -87,6 +89,16 @@ export default function ReportsPage() {
       <CardContent>
         <DataTable columns={columns} data={reports} />
       </CardContent>
+
+      {editingId && (
+        <EditReportDialog
+          reportId={editingId}
+          open={!!editingId}
+          onClose={() => setEditingId(null)}
+          onReportUpdated={handleReportUpdated}
+        />
+      )}
+
     </Card>
   )
 } 

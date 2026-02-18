@@ -108,8 +108,8 @@ function LoadingSkeleton() {
 export function ViewReportDialog({ reportId }: ViewReportDialogProps) {
   const [open, setOpen] = useState(false)
   const [rejectModalOpen, setRejectModalOpen] = useState(false)
-const [rejectComment, setRejectComment] = useState("")
-const queryClient = useQueryClient()
+  const [rejectComment, setRejectComment] = useState("")
+  const queryClient = useQueryClient()
 
 
   const {
@@ -128,47 +128,51 @@ const queryClient = useQueryClient()
     enabled: open, // Only fetch when dialog is open
   })
 
+
+
+  console.log(report)
+
   const approveMutation = useMutation({
-  mutationFn: async (id: string) => {
-    const response = await fetch(`/api/reports/${id}/approve`, {
-      method: "PUT",
-    })
-    if (!response.ok) throw new Error("Failed to approve report")
-  },
-  onSuccess: () => {
-    toast.success("Report approved successfully")
-    queryClient.invalidateQueries({ queryKey: ["report", reportId] } as any);
-  },
-})
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/reports/${id}/approve`, {
+        method: "PUT",
+      })
+      if (!response.ok) throw new Error("Failed to approve report")
+    },
+    onSuccess: () => {
+      toast.success("Report approved successfully")
+      queryClient.invalidateQueries({ queryKey: ["report", reportId] } as any);
+    },
+  })
 
-// Reject
-const rejectMutation = useMutation({
-  mutationFn: async ({ id, comment }: { id: string; comment: string }) => {
-    const response = await fetch(`/api/reports/${id}/reject`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ comment }),
-    })
-    if (!response.ok) throw new Error("Failed to reject report")
-  },
-  onSuccess: () => {
-    toast.success("Report rejected successfully")
-    queryClient.invalidateQueries({ queryKey: ["report", reportId] } as any);
-    setRejectModalOpen(false)
-    setRejectComment("")
-  },
-})
+  // Reject
+  const rejectMutation = useMutation({
+    mutationFn: async ({ id, comment }: { id: string; comment: string }) => {
+      const response = await fetch(`/api/reports/${id}/reject`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ comment }),
+      })
+      if (!response.ok) throw new Error("Failed to reject report")
+    },
+    onSuccess: () => {
+      toast.success("Report rejected successfully")
+      queryClient.invalidateQueries({ queryKey: ["report", reportId] } as any);
+      setRejectModalOpen(false)
+      setRejectComment("")
+    },
+  })
 
-const approveReport = (id: string) => {
-  approveMutation.mutate(id)
-}
-const submitRejection = (id: string) => {
-  if (!rejectComment.trim()) {
-    toast.error("Please provide a rejection comment")
-    return
+  const approveReport = (id: string) => {
+    approveMutation.mutate(id)
   }
-  rejectMutation.mutate({ id, comment: rejectComment })
-}
+  const submitRejection = (id: string) => {
+    if (!rejectComment.trim()) {
+      toast.error("Please provide a rejection comment")
+      return
+    }
+    rejectMutation.mutate({ id, comment: rejectComment })
+  }
 
 
   const openInMaps = (coordinates: string) => {
@@ -537,8 +541,8 @@ const submitRejection = (id: string) => {
                                         <Badge
                                           variant={participant.isPwd ? "default" : "outline"}
                                           className={`text-xs ${participant.isPwd
-                                              ? 'bg-purple-100 text-purple-800 border-purple-200'
-                                              : 'bg-gray-50 text-gray-600'
+                                            ? 'bg-purple-100 text-purple-800 border-purple-200'
+                                            : 'bg-gray-50 text-gray-600'
                                             }`}
                                         >
                                           {participant.isPwd ? 'Yes' : 'No'}
@@ -792,15 +796,15 @@ const submitRejection = (id: string) => {
                               </Badge>
                             </div>
                           </div>
-                          <Button variant="ghost" size="sm" asChild>
-                            <a
-                              href={attachment.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-1"
-                            >
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              downloadFile(attachment.url, attachment.originalName)
+                            }
+                          >
+
                               <Download className="h-3 w-3" />
-                            </a>
                           </Button>
                         </div>
                       ))}
@@ -828,36 +832,58 @@ const submitRejection = (id: string) => {
         </ScrollArea>
       </DialogContent>
       <Dialog open={rejectModalOpen} onOpenChange={setRejectModalOpen}>
-  <DialogContent className="sm:max-w-md">
-    <DialogHeader>
-      <DialogTitle>Reject Report</DialogTitle>
-    </DialogHeader>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reject Report</DialogTitle>
+          </DialogHeader>
 
-    <p className="text-sm text-muted-foreground mb-2">
-      Please provide a reason for rejecting this report.
-    </p>
+          <p className="text-sm text-muted-foreground mb-2">
+            Please provide a reason for rejecting this report.
+          </p>
 
-    <textarea
-      value={rejectComment}
-      onChange={(e) => setRejectComment(e.target.value)}
-      rows={4}
-      className="w-full border rounded-lg p-3 text-sm"
-      placeholder="Enter rejection reason..."
-    />
+          <textarea
+            value={rejectComment}
+            onChange={(e) => setRejectComment(e.target.value)}
+            rows={4}
+            className="w-full border rounded-lg p-3 text-sm"
+            placeholder="Enter rejection reason..."
+          />
 
-    <div className="flex justify-end gap-2 mt-3">
-      <Button variant="outline" onClick={() => setRejectModalOpen(false)}>
-        Cancel
-      </Button>
-      <Button
-        className="bg-red-600 hover:bg-red-700 text-white"
-        onClick={() => submitRejection(report.id)}
-      >
-        Submit Rejection
-      </Button>
-    </div>
-  </DialogContent>
-</Dialog>
+          <div className="flex justify-end gap-2 mt-3">
+            <Button variant="outline" onClick={() => setRejectModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={() => submitRejection(report.id)}
+            >
+              Submit Rejection
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   )
+}
+
+
+const downloadFile = async (url: string, filename: string) => {
+  try {
+    const res = await fetch(url)
+    const blob = await res.blob()
+
+    const blobUrl = window.URL.createObjectURL(blob)
+
+    const link = document.createElement("a")
+    link.href = blobUrl
+    link.download = filename // 👈 preserves extension
+    document.body.appendChild(link)
+
+    link.click()
+
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(blobUrl)
+  } catch (err) {
+    toast.error("Failed to download file")
+  }
 }

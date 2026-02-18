@@ -26,13 +26,24 @@ export function Header() {
   const getInitials = (name: string) => {
     return name
       ? name
-          .split(" ")
-          .map((n) => n[0])
-          .join("")
-          .toUpperCase()
-          .slice(0, 2)
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
       : "U"
   }
+
+
+  const formatRole = (role?: string) => {
+    if (!role) return ""
+
+    return role
+      .split("_")
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ")
+  }
+
 
   return (
     <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all">
@@ -72,9 +83,12 @@ export function Header() {
           <button className="flex items-center gap-2 outline-none rounded-full ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
             <div className="text-right hidden md:block">
               <p className="text-sm font-medium leading-none">{user?.name}</p>
-              <p className="text-xs text-muted-foreground mt-1">Admin</p> {/* Optional Role Text */}
+              <p className="text-xs text-muted-foreground mt-1">
+                {formatRole(user?.role)}
+              </p>
+
             </div>
-            
+
             <Avatar className="h-9 w-9 border border-gray-200 cursor-pointer hover:shadow-md transition-shadow">
               <AvatarImage src={user?.image || ""} alt={user?.name || "User"} />
               <AvatarFallback className="bg-primary/10 text-primary font-medium">

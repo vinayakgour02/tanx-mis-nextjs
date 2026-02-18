@@ -129,9 +129,6 @@ export function ViewReportDialog({ reportId }: ViewReportDialogProps) {
   })
 
 
-
-  console.log(report)
-
   const approveMutation = useMutation({
     mutationFn: async (id: string) => {
       const response = await fetch(`/api/reports/${id}/approve`, {

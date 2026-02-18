@@ -5,9 +5,9 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
   try {
-    
+
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return new NextResponse("Unauthorized", { status: 401 })
     }
@@ -23,10 +23,15 @@ export async function GET(request: Request) {
     if (!member) {
       return new NextResponse("No active organization membership", { status: 403 })
     }
+
+    const isAdmin = session.user.role === "ngo_admin";
     // Fetch reports with related data
     const reports = await prisma.report.findMany({
       where: {
-        organizationId: session.user.organizationId
+        organizationId: session.user.organizationId,
+        ...(isAdmin
+          ? {}
+          : { creatorId: session.user.id }),
       },
       include: {
         project: {
@@ -35,13 +40,13 @@ export async function GET(request: Request) {
             code: true
           }
         },
-        
+
         activity: {
           select: {
             name: true,
             code: true,
-            Intervention:true,
-            subInterventionRel:true
+            Intervention: true,
+            subInterventionRel: true
           }
         },
         creator: {
@@ -228,13 +233,13 @@ export async function POST(request: Request) {
       },
     });
 
-    try{
+    try {
       // Capture request metadata for audit log
       const forwardedFor = request.headers.get('x-forwarded-for') ?? '';
       const realIp = request.headers.get('x-real-ip') ?? '';
       const ipAddress = (forwardedFor.split(',')[0]?.trim() || realIp || undefined);
       const userAgent = request.headers.get('user-agent') || undefined;
-  
+
       await prisma.auditLog.create({
         data: {
           organizationId: session?.user?.organizationId || '',
@@ -247,15 +252,15 @@ export async function POST(request: Request) {
           timestamp: new Date(),
         },
       });
-   }catch(error){
-     console.error("Error Indicator Log")
-   }
+    } catch (error) {
+      console.error("Error Indicator Log")
+    }
 
     return NextResponse.json(report);
   } catch (error) {
     console.error("[REPORTS_POST]", error);
     return new NextResponse(
-      error instanceof Error ? error.message : "Internal Error", 
+      error instanceof Error ? error.message : "Internal Error",
       { status: 500 }
     );
   }

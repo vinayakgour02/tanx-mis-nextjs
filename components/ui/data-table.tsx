@@ -52,11 +52,13 @@ export function DataTable<TData, TValue>({
       <div className="rounded-md border">
         <Table>
           <TableHeader>
-            {columns.map((column, index) => (
-              <TableHead key={index}>
-                <Skeleton className="h-4 w-20" />
-              </TableHead>
-            ))}
+            <TableRow>
+              {columns.map((column, index) => (
+                <TableHead key={index}>
+                  <Skeleton className="h-4 w-20" />
+                </TableHead>
+              ))}
+            </TableRow>
           </TableHeader>
           <TableBody>
             {Array.from({ length: 5 }).map((_, rowIndex) => (
@@ -87,9 +89,9 @@ export function DataTable<TData, TValue>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}

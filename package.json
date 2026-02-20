@@ -57,6 +57,7 @@
     "embla-carousel-react": "^8.6.0",
     "file-saver": "^2.0.5",
     "fontkit": "^2.0.4",
+    "fs": "^0.0.1-security",
     "input-otp": "^1.4.2",
     "jsonwebtoken": "^9.0.3",
     "leaflet": "^1.9.4",

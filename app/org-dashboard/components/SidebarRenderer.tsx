@@ -1,6 +1,6 @@
-"use client"
-import Link from "next/link"
-import { useState, useEffect } from "react"
+"use client";
+import Link from "next/link";
+import { useState, useEffect } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -9,20 +9,20 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "@/components/ui/sidebar"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { NavPermission, SidebarItem } from "./navigation-config"
+} from "@/components/ui/sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NavPermission, SidebarItem } from "./navigation-config";
 
 interface SidebarRendererProps {
-  items: SidebarItem[]
-  pathname: string
- can: (resource: string, action: NavPermission["action"]) => boolean
-  isLoading: boolean
-  organization?: any
-  subscription?: any
-  subscriptionPlan?: any
-  subscriptionLoading: boolean
-  user?: any
+  items: SidebarItem[];
+  pathname: string;
+  can: (resource: string, action: NavPermission["action"]) => boolean;
+  isLoading: boolean;
+  organization?: any;
+  subscription?: any;
+  subscriptionPlan?: any;
+  subscriptionLoading: boolean;
+  user?: any;
 }
 
 export default function SidebarRenderer({
@@ -36,85 +36,94 @@ export default function SidebarRenderer({
   subscriptionLoading,
   user,
 }: SidebarRendererProps) {
-  const [organizationLogo, setOrganizationLogo] = useState<string | null>(null)
-  const [openParents, setOpenParents] = useState<string[]>([])
+  const [organizationLogo, setOrganizationLogo] = useState<string | null>(null);
+  const [openParents, setOpenParents] = useState<string[]>([]);
 
-  const organizationName = user?.organizationName || "Organization"
-  const userImageSrc = user?.role === "ngo_admin" ? user?.image : null
-  const avatarSrc = userImageSrc || organizationLogo || ""
-
-  useEffect(() => {
-    if (organization?.logo) setOrganizationLogo(organization.logo)
-  }, [organization])
+  const organizationName = user?.organizationName || "Organization";
+  const userImageSrc = user?.role === "ngo_admin" ? user?.image : null;
+  const avatarSrc = userImageSrc || organizationLogo || "";
 
   useEffect(() => {
-    const parentsWithChildren = items.filter((i) => i.children).map((i) => i.href)
-    setOpenParents(parentsWithChildren)
-  }, [items])
+    if (organization?.logo) setOrganizationLogo(organization.logo);
+  }, [organization]);
+
+  useEffect(() => {
+    const parentsWithChildren = items
+      .filter((i) => i.children)
+      .map((i) => i.href);
+    setOpenParents(parentsWithChildren);
+  }, [items]);
 
   const toggleParent = (href: string) => {
     setOpenParents((prev) =>
-      prev.includes(href) ? prev.filter((h) => h !== href) : [...prev, href]
-    )
-  }
+      prev.includes(href) ? prev.filter((h) => h !== href) : [...prev, href],
+    );
+  };
 
   const orgInitials = organizationName
     .split(" ")
     .map((word: string) => word[0])
     .join("")
     .toUpperCase()
-    .slice(0, 2)
+    .slice(0, 2);
 
   // ✅ Permission-based filtering
- function filterVisibleItems(items: SidebarItem[]): SidebarItem[] {
-  return items
-    .map((item) => {
-      // ✅ Skip permission for these features
-      const bypassPermission =
-        item.title === "Asset Management" ||
-        item.title === "Youth Bank"
+  // ✅ Permission-based filtering (RBAC)
+  function filterVisibleItems(items: SidebarItem[]): SidebarItem[] {
+    return items
+      .map((item) => {
+        let hasPermission = true;
 
-      const hasPermission = bypassPermission
-        ? true
-        : item.requiredPermission
-        ? can(item.requiredPermission.resource, item.requiredPermission.action)
-        : true
-
-    
-
-      // ✅ Children handling
-      let visibleChildren: SidebarItem[] = []
-
-      if (item.children) {
-        if (hasPermission) {
-          visibleChildren = item.children
-        } else {
-          visibleChildren = filterVisibleItems(item.children)
+        // 🔐 Asset Management → needs asset-handovers
+        if (item.href.startsWith("/org-dashboard/assets")) {
+          hasPermission =
+            can("asset-handovers", "write") || can("asset-handovers", "read");
         }
-      }
 
-      // ✅ Keep if allowed
-      if (hasPermission || visibleChildren.length > 0) {
-        return { ...item, children: visibleChildren }
-      }
+        // 🔐 Youth Bank → example (change if needed)
+        if (item.href.startsWith("/org-dashboard/youth-bank")) {
+          hasPermission = can("youth-bank", "read");
+        }
 
-      return null
-    })
-    .filter(Boolean) as SidebarItem[]
-}
+        // 🔐 Other permissions (generic)
+        if (item.requiredPermission) {
+          hasPermission = can(
+            item.requiredPermission.resource,
+            item.requiredPermission.action,
+          );
+        }
 
-  const visibleItems = !isLoading ? filterVisibleItems(items) : []
+        // ✅ Children handling
+        let visibleChildren: SidebarItem[] = [];
 
-  const daysRemaining =
-    subscription?.endDate
-      ? Math.max(
-          0,
-          Math.ceil(
-            (new Date(subscription.endDate).getTime() - Date.now()) /
-              (1000 * 60 * 60 * 24)
-          )
-        )
-      : null
+        if (item.children?.length) {
+          visibleChildren = filterVisibleItems(item.children);
+        }
+
+        // ✅ Keep only allowed
+        if (hasPermission || visibleChildren.length > 0) {
+          return {
+            ...item,
+            children: visibleChildren,
+          };
+        }
+
+        return null;
+      })
+      .filter(Boolean) as SidebarItem[];
+  }
+
+  const visibleItems = !isLoading ? filterVisibleItems(items) : [];
+
+  const daysRemaining = subscription?.endDate
+    ? Math.max(
+        0,
+        Math.ceil(
+          (new Date(subscription.endDate).getTime() - Date.now()) /
+            (1000 * 60 * 60 * 24),
+        ),
+      )
+    : null;
 
   return (
     <Sidebar className="bg-white border-r border-gray-200 flex flex-col">
@@ -131,17 +140,21 @@ export default function SidebarRenderer({
             <span className="text-sm font-semibold w-28 text-gray-900">
               {organizationName}
             </span>
-            <span className="text-xs text-gray-500 truncate w-40">{user?.email}</span>
+            <span className="text-xs text-gray-500 truncate w-40">
+              {user?.email}
+            </span>
           </div>
         </div>
       </SidebarHeader>
 
       {/* Menu */}
       <SidebarContent className="flex-1 overflow-y-auto">
-        <SidebarMenu className={isLoading ? "hidden " : "mt-2 overflow-x-hidden"}>
+        <SidebarMenu
+          className={isLoading ? "hidden " : "mt-2 overflow-x-hidden"}
+        >
           {visibleItems.map((item) => {
-            const isActive = pathname.startsWith(item.href)
-            const isOpen = openParents.includes(item.href)
+            const isActive = pathname.startsWith(item.href);
+            const isOpen = openParents.includes(item.href);
 
             return (
               <SidebarMenuItem key={item.href}>
@@ -150,7 +163,7 @@ export default function SidebarRenderer({
                   tooltip={item.title}
                   onClick={() => {
                     if (item.children && item.children.length > 0) {
-                      toggleParent(item.href)
+                      toggleParent(item.href);
                     }
                   }}
                   className="group hover:bg-primary/10 rounded-md px-3 py-2 transition-colors duration-150"
@@ -178,7 +191,10 @@ export default function SidebarRenderer({
                       </span>
                     </div>
                   ) : (
-                    <Link href={item.href} className="flex items-center gap-2 w-full">
+                    <Link
+                      href={item.href}
+                      className="flex items-center gap-2 w-full"
+                    >
                       <item.icon
                         className={`h-5 w-5 ${
                           isActive
@@ -207,7 +223,10 @@ export default function SidebarRenderer({
                           isActive={pathname === child.href}
                           className="group hover:bg-primary/10 rounded-md px-3 py-2 transition-colors duration-150"
                         >
-                          <Link href={child.href} className="flex items-center gap-2">
+                          <Link
+                            href={child.href}
+                            className="flex items-center gap-2"
+                          >
                             <child.icon
                               className={`h-4 w-4 ${
                                 pathname === child.href
@@ -231,7 +250,7 @@ export default function SidebarRenderer({
                   </SidebarMenu>
                 )}
               </SidebarMenuItem>
-            )
+            );
           })}
         </SidebarMenu>
       </SidebarContent>
@@ -258,5 +277,5 @@ export default function SidebarRenderer({
 
       <SidebarRail className="bg-gray-50" />
     </Sidebar>
-  )
+  );
 }
